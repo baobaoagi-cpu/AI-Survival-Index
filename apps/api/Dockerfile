@@ -5,7 +5,7 @@ COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/api ./apps/api
 RUN pnpm install --frozen-lockfile=false
-RUN pnpm --filter @ai-survival/api build
+RUN pnpm --filter @ai-survival/shared build && pnpm --filter @ai-survival/api build
 
 FROM node:22-slim AS runtime
 WORKDIR /app

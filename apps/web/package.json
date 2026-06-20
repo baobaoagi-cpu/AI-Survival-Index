@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
+    "build": "pnpm --filter @ai-survival/shared build && vite build",
     "preview": "vite preview",
-    "check": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "check": "pnpm --filter @ai-survival/shared build && tsc --noEmit",
+    "typecheck": "pnpm --filter @ai-survival/shared build && tsc --noEmit"
   },
   "dependencies": {
     "@ai-survival/shared": "workspace:*",
