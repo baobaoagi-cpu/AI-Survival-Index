@@ -29,9 +29,12 @@
   @keyframes starBlink { 0%,100%{ opacity:0.42; filter:drop-shadow(0 0 8px rgba(203,166,255,0.32)) } 45%{ opacity:1; filter:drop-shadow(0 0 18px rgba(118,223,211,0.68)) } }
   @keyframes crestFlicker { 0%,100%{ opacity:0.78; filter:drop-shadow(0 0 6px rgba(216,180,107,0.22)) } 50%{ opacity:1; filter:drop-shadow(0 0 14px rgba(118,223,211,0.42)) } }
   @keyframes crestSelfSpin { to { transform:rotate(360deg) } }
+  @keyframes avatarReveal { 0%{ opacity:0; transform:translate(-50%,-50%) scale(0.72); filter:blur(8px) } 100%{ opacity:1; transform:translate(-50%,-50%) scale(1); filter:blur(0) } }
   .orbit-crest { position:absolute; left:50%; top:50%; width:36px; height:36px; margin:-18px 0 0 -18px; transform:rotate(var(--angle)) translateY(-114px); }
   .orbit-crest img { width:36px; height:36px; object-fit:contain; border-radius:12px; background:#fffdf8; padding:3px; box-shadow:0 0 18px rgba(216,180,107,0.28); animation:crestSelfSpin 18s linear infinite, crestFlicker var(--pulse) ease-in-out infinite; }
   .yuling-orb-canvas { width:150px; height:150px; display:block; border-radius:50%; opacity:0.96; mix-blend-mode:screen; filter:drop-shadow(0 0 18px rgba(118,223,211,0.34)); }
+  .line-orb-avatar { position:absolute; left:50%; top:50%; width:74px; height:74px; transform:translate(-50%,-50%) scale(0.72); border-radius:50%; object-fit:cover; opacity:0; pointer-events:none; border:2px solid rgba(255,253,248,0.92); background:rgba(255,253,248,0.94); box-shadow:0 0 0 1px rgba(216,180,107,0.72), 0 0 26px rgba(118,223,211,0.62), 0 0 58px rgba(203,166,255,0.36); z-index:2; }
+  .line-orb-avatar.is-visible { animation:avatarReveal 720ms cubic-bezier(.2,.8,.2,1) forwards; }
 </style>
 </helmet>
 
@@ -143,6 +146,7 @@
         <div style="position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle, rgba(203,166,255,0.16), rgba(118,223,211,0.08) 36%, transparent 68%); filter:blur(1px);"></div>
         <div style="position:absolute; width:210px; height:210px; border-radius:50%; display:grid; place-items:center; border:1px solid rgba(214,174,91,0.26); box-shadow:0 0 34px rgba(118,223,211,0.12); animation:starWheelReverse 34s linear infinite;"></div>
         <canvas class="yuling-orb-canvas" data-yuling-orb aria-hidden="true" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);"></canvas>
+        <img class="line-orb-avatar" data-line-orb-avatar alt="LINE user avatar">
         <div style="position:absolute; width:228px; height:228px; border-radius:50%; animation:starWheelReverse 42s linear infinite;">
           <span class="orbit-crest" style="--angle:0deg; --pulse:2.4s;"><img src="./assets/archetypes/explorer.png" alt=""></span>
           <span class="orbit-crest" style="--angle:40deg; --pulse:2.8s;"><img src="./assets/archetypes/craftsman.png" alt=""></span>
@@ -420,6 +424,33 @@
 
     requestAnimationFrame(frame);
   });
+})();
+(function initLineOrbAvatar(){
+  const avatars = Array.from(document.querySelectorAll('[data-line-orb-avatar]'));
+  if (!avatars.length) return;
+
+  function readStoredProfile() {
+    try {
+      return JSON.parse(localStorage.getItem('AI_SURVIVAL_LINE_PROFILE') || '{}');
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function applyProfile(profile = readStoredProfile()) {
+    const pictureUrl = profile.pictureUrl || localStorage.getItem('AI_SURVIVAL_LINE_PICTURE_URL');
+    const displayName = profile.displayName || localStorage.getItem('AI_SURVIVAL_LINE_DISPLAY_NAME') || 'LINE user';
+    if (!pictureUrl) return;
+    avatars.forEach((avatar) => {
+      avatar.alt = `${displayName} avatar`;
+      if (avatar.src !== pictureUrl) avatar.src = pictureUrl;
+      avatar.classList.add('is-visible');
+    });
+  }
+
+  applyProfile();
+  window.addEventListener('ai-survival:line-profile', (event) => applyProfile(event.detail || {}));
+  window.AI_SURVIVAL_LINE?.ready?.then(() => applyProfile()).catch(() => {});
 })();
 </script>
 <script type="text/x-dc" data-dc-script data-props="{
