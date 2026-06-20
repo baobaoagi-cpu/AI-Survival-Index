@@ -12,6 +12,8 @@ AI 時代生存指數 Alpha product workspace.
 - `assets/archetypes`: locked crest assets.
 - `docs/product-advisory-board.md`: product, architecture, UX, analytics, and growth decision rules.
 - `docs/option-bible-spec-v1.md`: six-dimension personality engine and Option Bible source of truth.
+- `docs/archetype-bible-v1.md`: nine archetypes, dimension coordinates, growth routes, and visual identity rules.
+- `docs/archetype-mission-system-v1.md`: today, 7-day, 30-day, and 90-day mission design for each archetype.
 - `docs/option-image-prompt-bible.md`: 18 option image prompts for quiz choice illustrations.
 
 ## Local Development
