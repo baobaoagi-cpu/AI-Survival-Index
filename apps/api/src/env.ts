@@ -13,15 +13,26 @@ export type ApiEnv = {
 
 loadLocalEnvFiles();
 
+const DEFAULT_APP_ORIGINS = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:8765",
+  "http://127.0.0.1:8765",
+  "null",
+];
+
 export function readEnv(env = process.env): ApiEnv {
-  const appOrigin =
-    env.APP_ORIGIN ||
-    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8765,http://127.0.0.1:8765,null";
+  const configuredOrigins = (env.APP_ORIGIN ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const appOrigins = [...new Set([...configuredOrigins, ...DEFAULT_APP_ORIGINS])];
+  const appOrigin = appOrigins.join(",");
 
   return {
     port: Number(env.PORT || 8080),
     appOrigin,
-    appOrigins: appOrigin.split(",").map((origin) => origin.trim()).filter(Boolean),
+    appOrigins,
     supabaseUrl: env.SUPABASE_URL,
     supabaseServiceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
     lineChannelSecret: env.LINE_CHANNEL_SECRET,
