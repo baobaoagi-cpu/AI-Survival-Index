@@ -7,6 +7,10 @@
       window.AI_SURVIVAL_LIFF_ID ||
       localStorage.getItem("AI_SURVIVAL_LIFF_ID") ||
       "",
+    productionOrigin:
+      window.AI_SURVIVAL_PUBLIC_ORIGIN ||
+      localStorage.getItem("AI_SURVIVAL_PUBLIC_ORIGIN") ||
+      "https://ai-survival-index.pages.dev",
     requireLogin:
       window.AI_SURVIVAL_REQUIRE_LINE_LOGIN === true ||
       localStorage.getItem("AI_SURVIVAL_REQUIRE_LINE_LOGIN") === "true",
@@ -103,7 +107,10 @@
     }
 
     await loadScript();
-    await window.liff.init({ liffId: config.liffId });
+    await window.liff.init({
+      liffId: config.liffId,
+      withLoginOnExternalBrowser: true,
+    });
 
     if (config.requireLogin && !window.liff.isLoggedIn()) {
       window.liff.login({ redirectUri: window.location.href });
@@ -128,18 +135,36 @@
       disabled: false,
       isLoggedIn: window.liff.isLoggedIn(),
       isInClient: window.liff.isInClient(),
+      shareTargetPickerAvailable: window.liff.isApiAvailable("shareTargetPicker"),
       lineUserId: localStorage.getItem("AI_SURVIVAL_LINE_USER_ID"),
     };
     return window.AI_SURVIVAL_LINE_STATUS;
   }
 
+  const ready = init().catch((error) => {
+    console.warn("LIFF init failed", error);
+    window.AI_SURVIVAL_LINE_STATUS = {
+      ready: false,
+      disabled: false,
+      error: String(error?.message || error),
+      lineUserId: localLineUserId(),
+    };
+    return window.AI_SURVIVAL_LINE_STATUS;
+  });
+
   async function share(messages) {
     await ready;
-    if (!window.liff?.isLoggedIn?.()) throw new Error("LINE login is required before sharing");
+
+    if (!window.liff?.isLoggedIn?.()) {
+      window.liff?.login?.({ redirectUri: window.location.href });
+      throw new Error("LINE login is required before sharing");
+    }
+
     if (!window.liff.isApiAvailable("shareTargetPicker")) {
       throw new Error("LINE shareTargetPicker is not available");
     }
-    return window.liff.shareTargetPicker(messages);
+
+    return window.liff.shareTargetPicker(messages, { isMultiple: true });
   }
 
   function gameUrl(extra = {}) {
@@ -154,12 +179,36 @@
     return query ? `${base}${base.includes("?") ? "&" : "?"}${query}` : base;
   }
 
+  async function permanentGameUrl(extra = {}) {
+    const params = new URLSearchParams();
+    const profileId = extra.profileId || localStorage.getItem("profileId");
+    if (profileId) params.set("ref", profileId);
+
+    const origin = window.location.protocol === "https:" ? window.location.origin : config.productionOrigin;
+    const endpointUrl = `${origin.replace(/\/$/, "")}/`;
+    const query = params.toString();
+    const webUrl = query ? `${endpointUrl}?${query}` : endpointUrl;
+
+    await ready;
+    if (window.liff?.permanentLink?.createUrlBy) {
+      try {
+        return window.liff.permanentLink.createUrlBy(webUrl);
+      } catch (error) {
+        console.warn("LIFF permanent link failed, fallback to LIFF URL", error);
+      }
+    }
+
+    return config.liffId
+      ? `https://liff.line.me/${config.liffId}${query ? `?${query}` : ""}`
+      : webUrl;
+  }
+
   async function shareGame(options = {}) {
-    const url = options.url || gameUrl(options);
+    const url = options.url || (await permanentGameUrl(options));
     const title = options.title || "AI 時代生存指數";
     const text =
       options.text ||
-      "我剛測了我的 AI 原型。你也來測看看，在超智能時代你屬於哪個位置？";
+      "我剛測出自己的 AI 人格原型。你也來看看自己在超智能時代的位置。";
 
     return share([
       {
@@ -169,22 +218,12 @@
     ]);
   }
 
-  const ready = init().catch((error) => {
-    console.warn("LIFF init failed", error);
-    window.AI_SURVIVAL_LINE_STATUS = {
-      ready: false,
-      disabled: false,
-      error: String(error?.message || error),
-      lineUserId: localLineUserId(),
-    };
-    return window.AI_SURVIVAL_LINE_STATUS;
-  });
-
   window.AI_SURVIVAL_LINE = {
     ready,
     share,
     shareGame,
     gameUrl,
+    permanentGameUrl,
     getStatus: () => window.AI_SURVIVAL_LINE_STATUS,
   };
 })();
