@@ -279,7 +279,7 @@ export function createQuizScenariosFromOptionBible(): QuizScenario[] {
       id: "scene-04-friend-anxiety",
       chapter: "四",
       chTitle: "好友求救",
-      line: "好友問：我會被取代嗎？",
+      line: "好友問：我會被AI取代嗎？",
     },
     "scene-05-blank-canvas": {
       id: "scene-05-blank-canvas",
@@ -291,7 +291,7 @@ export function createQuizScenariosFromOptionBible(): QuizScenario[] {
       id: "scene-06-future-self",
       chapter: "六",
       chTitle: "未來回望",
-      line: "十年後的你看著現在。",
+      line: "十年後的你，回望此刻。",
     },
   };
 
