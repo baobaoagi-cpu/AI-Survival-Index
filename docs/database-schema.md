@@ -5,6 +5,8 @@
 Migration:
 
 - `supabase/migrations/202606200001_initial_schema.sql`
+- `supabase/migrations/20260620033307_add_user_events.sql`
+- `supabase/migrations/20260620054305_add_dimension_scores.sql`
 
 ## Enum
 
@@ -66,13 +68,14 @@ LINE 使用者基本資料鏡像。
 - `secondary_type`
 - `evolution_type`
 - `archetype_scores`
+- `dimension_scores`
 - `started_at`
 - `completed_at`
 
 用途：
 
 - 記錄使用者每次測驗
-- 儲存完成後的三種結果類型
+- 儲存完成後的三種結果類型與六維人格分數
 
 ### `quiz_answers`
 
@@ -84,12 +87,13 @@ LINE 使用者基本資料鏡像。
 - `scenario_id`
 - `option_id`
 - `archetype_key`
+- `dimension_effect`
 - `answered_at`
 
 用途：
 
 - 保留每題答案
-- 未來可做題目分析與轉換率分析
+- 可做題目分析、轉換率分析與六維人格回推
 
 ### `archetype_results`
 
@@ -103,6 +107,7 @@ LINE 使用者基本資料鏡像。
 - `secondary_type`
 - `evolution_type`
 - `archetype_scores`
+- `dimension_scores`
 - `share_card_url`
 
 用途：

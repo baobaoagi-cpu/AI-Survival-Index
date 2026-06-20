@@ -109,7 +109,7 @@ adminRoute.get("/summary", async (c) => {
       .select("event_name,scenario_id,occurred_at")
       .order("occurred_at", { ascending: false })
       .limit(3000),
-    supabase.from("quiz_sessions").select("id").order("created_at", { ascending: false }).limit(300),
+    supabase.from("quiz_sessions").select("id,dimension_scores").order("created_at", { ascending: false }).limit(300),
   ]);
 
   const now = Date.now();
@@ -128,7 +128,7 @@ adminRoute.get("/summary", async (c) => {
           .select("session_id,scenario_id,option_id,answered_at")
           .in("session_id", recentSessionIds)
       : { data: [], error: null };
-  const scoredSessions = scoreSessionsFromAnswers(recentAnswers.data ?? []);
+  const scoredSessions = scoreSessionsWithStoredDimensions(recentSessions.data ?? [], recentAnswers.data ?? []);
 
   return c.json({
     totals: {
@@ -207,7 +207,7 @@ adminRoute.get("/quiz-sessions", async (c) => {
 
   const { data: sessions, error } = await supabase
     .from("quiz_sessions")
-    .select("id,profile_id,status,primary_type,secondary_type,evolution_type,archetype_scores,started_at,completed_at,created_at")
+    .select("id,profile_id,status,primary_type,secondary_type,evolution_type,archetype_scores,dimension_scores,started_at,completed_at,created_at")
     .order("created_at", { ascending: false })
     .limit(120);
 
@@ -216,7 +216,7 @@ adminRoute.get("/quiz-sessions", async (c) => {
   const sessionIds = (sessions ?? []).map((session) => session.id);
   const profileIds = [...new Set((sessions ?? []).map((session) => session.profile_id).filter(Boolean))];
   const [answers, profiles] = await Promise.all([
-    supabase.from("quiz_answers").select("session_id,scenario_id,option_id,archetype_key,answered_at").in("session_id", sessionIds),
+    supabase.from("quiz_answers").select("session_id,scenario_id,option_id,archetype_key,dimension_effect,answered_at").in("session_id", sessionIds),
     supabase.from("profiles").select("id,line_user_id,display_name,picture_url").in("id", profileIds),
   ]);
 
@@ -226,7 +226,13 @@ adminRoute.get("/quiz-sessions", async (c) => {
   return c.json({
     sessions: (sessions ?? []).map((session) => {
       const sessionAnswers = answersBySession.get(session.id) ?? [];
-      const score = scoreSessionAnswers(sessionAnswers);
+      const storedDimensionScores = normalizeStoredJson(session.dimension_scores);
+      const score = storedDimensionScores
+        ? {
+            dimensionScores: storedDimensionScores,
+            archetypeMatches: compareStoredDimensionScores(storedDimensionScores),
+          }
+        : scoreSessionAnswers(sessionAnswers);
       return {
         ...session,
         profile: session.profile_id ? profilesById.get(session.profile_id) ?? null : null,
@@ -354,9 +360,20 @@ function countBy(items: Record<string, unknown>[], key: string): Record<string, 
   }, {});
 }
 
-function scoreSessionsFromAnswers(answerRows: Record<string, unknown>[]) {
-  return [...groupBy(answerRows, "session_id").values()]
-    .map((answers) => scoreSessionAnswers(answers))
+function scoreSessionsWithStoredDimensions(sessions: Record<string, unknown>[], answerRows: Record<string, unknown>[]) {
+  const answersBySession = groupBy(answerRows, "session_id");
+
+  return sessions
+    .map((session) => {
+      const storedDimensionScores = normalizeStoredJson(session.dimension_scores);
+      if (storedDimensionScores) {
+        return {
+          dimensionScores: storedDimensionScores,
+          archetypeMatches: compareStoredDimensionScores(storedDimensionScores),
+        };
+      }
+      return scoreSessionAnswers(answersBySession.get(session.id) ?? []);
+    })
     .filter((score): score is NonNullable<ReturnType<typeof scoreSessionAnswers>> => Boolean(score));
 }
 
@@ -377,6 +394,35 @@ function scoreSessionAnswers(answerRows: Record<string, unknown>[]) {
   } catch {
     return null;
   }
+}
+
+function normalizeStoredJson(value: unknown): Record<string, number> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const hasAnyDimension = DIMENSION_KEYS.some((key) => typeof record[key] === "number");
+  if (!hasAnyDimension) return null;
+  return Object.fromEntries(DIMENSION_KEYS.map((key) => [key, Number(record[key] ?? 0)]));
+}
+
+function compareStoredDimensionScores(dimensionScores: Record<string, number>) {
+  const maxDistance = Math.sqrt(DIMENSION_KEYS.length * 100 * 100);
+  return ARCHETYPES.map((archetype, index) => {
+    const distance = Math.sqrt(
+      DIMENSION_KEYS.reduce((total, key) => {
+        const diff = (dimensionScores[key] ?? 0) - archetype.dimensionProfile[key];
+        return total + diff * diff;
+      }, 0),
+    );
+    return {
+      key: archetype.key,
+      name: archetype.name,
+      distance: Number(distance.toFixed(4)),
+      similarityScore: Math.max(0, Math.round((1 - distance / maxDistance) * 100)),
+      index,
+    };
+  })
+    .sort((a, b) => a.distance - b.distance || a.index - b.index)
+    .map(({ index, ...match }) => match);
 }
 
 function averageDimensionScores(scores: Array<{ dimensionScores: Record<string, number> }>): Record<string, number> {

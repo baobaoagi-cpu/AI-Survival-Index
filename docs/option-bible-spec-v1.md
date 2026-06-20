@@ -516,7 +516,7 @@ archetypeMatches:
     similarityScore:
 ```
 
-下一輪必要資料庫延伸：
+Alpha-07 資料庫延伸：
 
 ```text
 quiz_sessions.dimension_scores jsonb
@@ -524,4 +524,4 @@ archetype_results.dimension_scores jsonb
 quiz_answers.dimension_effect jsonb
 ```
 
-目前 API 已回傳 `dimensionScores` 與 `archetypeMatches`，前端 localStorage 也會保留這兩個欄位；資料庫 persistence 仍先寫入既有欄位，避免破壞目前正式環境。
+目前 API 已回傳 `dimensionScores` 與 `archetypeMatches`，前端 localStorage 也會保留這兩個欄位；資料庫已持久化 `dimension_scores` 與 `dimension_effect`，Admin 可優先讀取欄位，舊資料則 fallback 從答案回推。

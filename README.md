@@ -41,7 +41,7 @@ New Alpha-05 fields:
 - `dimensionScores`
 - `archetypeMatches`
 
-Next database migration should add:
+Alpha-07 persists these fields in Supabase:
 
 - `quiz_sessions.dimension_scores jsonb`
 - `archetype_results.dimension_scores jsonb`
@@ -65,8 +65,8 @@ The Admin Dashboard now computes analytics from `quiz_answers`:
 - per-session dimension scores
 - per-session top archetype matches
 
-These analytics are computed at API read time until the next database migration stores
-dedicated JSONB fields.
+These analytics use stored JSONB fields when available and fall back to answer-level
+calculation for older rows.
 
 ## Local Development
 

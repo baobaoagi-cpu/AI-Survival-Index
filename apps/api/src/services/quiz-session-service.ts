@@ -53,6 +53,7 @@ export async function createQuizSession(input: CreateQuizSessionInput): Promise<
       secondary_type: result.secondaryType,
       evolution_type: result.evolutionType,
       archetype_scores: result.archetypeScores,
+      dimension_scores: result.dimensionScores,
       completed_at: completedAt,
     })
     .select("id")
@@ -67,6 +68,7 @@ export async function createQuizSession(input: CreateQuizSessionInput): Promise<
     scenario_id: answer.scenarioId,
     option_id: answer.optionId,
     archetype_key: answer.archetypeKey,
+    dimension_effect: answer.dimensionEffect,
   }));
 
   const { error: answersError } = await supabase.from("quiz_answers").insert(answerRows);
@@ -82,6 +84,7 @@ export async function createQuizSession(input: CreateQuizSessionInput): Promise<
     secondary_type: result.secondaryType,
     evolution_type: result.evolutionType,
     archetype_scores: result.archetypeScores,
+    dimension_scores: result.dimensionScores,
   });
 
   if (resultError) {

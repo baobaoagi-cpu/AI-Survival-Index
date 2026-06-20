@@ -39,7 +39,7 @@ Response includes the quiz result plus:
 - `sessionId`
 - `profileId`
 
-`dimensionScores` and `archetypeMatches` are currently returned by the API but not yet persisted to dedicated database columns. The next migration should add `dimension_scores` and answer-level `dimension_effect` JSONB fields.
+`dimensionScores` is persisted to `quiz_sessions.dimension_scores` and `archetype_results.dimension_scores`. Answer-level `dimensionEffect` is persisted to `quiz_answers.dimension_effect`.
 
 ### `POST /line/webhook`
 

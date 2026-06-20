@@ -43,6 +43,7 @@ create table if not exists public.quiz_sessions (
   secondary_type public.archetype_key,
   evolution_type public.archetype_key,
   archetype_scores jsonb not null default '{}'::jsonb,
+  dimension_scores jsonb not null default '{}'::jsonb,
   started_at timestamptz not null default now(),
   completed_at timestamptz,
   created_at timestamptz not null default now(),
@@ -55,6 +56,7 @@ create table if not exists public.quiz_answers (
   scenario_id text not null,
   option_id text not null check (option_id in ('a', 'b', 'c')),
   archetype_key public.archetype_key not null,
+  dimension_effect jsonb not null default '{}'::jsonb,
   answered_at timestamptz not null default now(),
   unique (session_id, scenario_id)
 );
@@ -67,6 +69,7 @@ create table if not exists public.archetype_results (
   secondary_type public.archetype_key not null,
   evolution_type public.archetype_key not null,
   archetype_scores jsonb not null default '{}'::jsonb,
+  dimension_scores jsonb not null default '{}'::jsonb,
   share_card_url text,
   created_at timestamptz not null default now()
 );
@@ -117,10 +120,22 @@ create table if not exists public.user_events (
   created_at timestamptz not null default now()
 );
 
+alter table public.quiz_sessions
+  add column if not exists dimension_scores jsonb not null default '{}'::jsonb;
+
+alter table public.archetype_results
+  add column if not exists dimension_scores jsonb not null default '{}'::jsonb;
+
+alter table public.quiz_answers
+  add column if not exists dimension_effect jsonb not null default '{}'::jsonb;
+
 create index if not exists profiles_line_user_id_idx on public.profiles(line_user_id);
 create index if not exists quiz_sessions_profile_id_idx on public.quiz_sessions(profile_id);
+create index if not exists quiz_sessions_dimension_scores_gin_idx on public.quiz_sessions using gin (dimension_scores);
 create index if not exists quiz_answers_session_id_idx on public.quiz_answers(session_id);
+create index if not exists quiz_answers_dimension_effect_gin_idx on public.quiz_answers using gin (dimension_effect);
 create index if not exists archetype_results_profile_id_idx on public.archetype_results(profile_id);
+create index if not exists archetype_results_dimension_scores_gin_idx on public.archetype_results using gin (dimension_scores);
 create index if not exists friend_links_owner_profile_id_idx on public.friend_links(owner_profile_id);
 create index if not exists share_events_profile_id_idx on public.share_events(profile_id);
 create index if not exists user_events_event_name_idx on public.user_events(event_name);

@@ -43,6 +43,44 @@ async function main() {
   assert.ok(apiResult.result.dimensionScores, "API score service result must include dimensionScores");
   assert.equal(apiResult.result.archetypeMatches.length, 9, "API score service result must include archetypeMatches");
 
+  const writes = [];
+  const fakeSupabase = {
+    from(table) {
+      return {
+        insert(payload) {
+          writes.push({ table, payload });
+          if (table === "quiz_sessions") {
+            return {
+              select() {
+                return {
+                  async single() {
+                    return { data: { id: "test-session-id" }, error: null };
+                  },
+                };
+              },
+            };
+          }
+          return Promise.resolve({ error: null });
+        },
+      };
+    },
+  };
+
+  const persistedResult = await apiService.createQuizSession({ answers, supabase: fakeSupabase });
+  assert.equal(persistedResult.persisted, true, "fake Supabase test should persist");
+
+  const sessionWrite = writes.find((write) => write.table === "quiz_sessions");
+  assert.ok(sessionWrite?.payload.dimension_scores, "quiz_sessions insert must include dimension_scores");
+
+  const answerWrite = writes.find((write) => write.table === "quiz_answers");
+  assert.ok(
+    answerWrite?.payload.every((row) => row.dimension_effect),
+    "quiz_answers insert must include dimension_effect per answer",
+  );
+
+  const resultWrite = writes.find((write) => write.table === "archetype_results");
+  assert.ok(resultWrite?.payload.dimension_scores, "archetype_results insert must include dimension_scores");
+
   console.log("Alpha-05 dimension quiz engine checks passed.");
 }
 
