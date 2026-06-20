@@ -68,6 +68,24 @@ Current MVP modules:
 - Question-to-image mapping
 - Friend graph table
 
+The dashboard funnel requires the `user_events` table. Apply:
+
+- `supabase/migrations/20260620033307_add_user_events.sql`
+
+or rerun the idempotent remote bootstrap:
+
+- `supabase/remote_bootstrap.sql`
+
+## Closed Beta Readiness
+
+Before inviting testers, verify:
+
+- Cloudflare Pages serves `manifest.webmanifest`, `sw.js`, and `tracking.js`.
+- Railway API accepts `POST /events`.
+- Supabase has `public.user_events`.
+- Admin Dashboard shows the funnel instead of the "event table not enabled" message.
+- The full user flow writes both quiz results and behavior events.
+
 ## Railway API Deploy
 
 This repo includes `railway.json` pointing Railway to `apps/api/Dockerfile`.

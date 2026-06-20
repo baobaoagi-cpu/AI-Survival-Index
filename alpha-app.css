@@ -2,6 +2,7 @@ html,
 body {
   margin: 0;
   width: 100%;
+  height: 100%;
   min-height: 100%;
   background: #050409;
   overflow: hidden;
@@ -9,15 +10,34 @@ body {
 
 body {
   display: flex;
+  align-items: stretch;
   justify-content: center;
   font-family: 'Noto Sans TC', sans-serif;
   -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(900px 620px at 18% 6%, rgba(112, 76, 255, 0.24), transparent 62%),
+    radial-gradient(820px 560px at 82% 20%, rgba(25, 172, 168, 0.22), transparent 64%),
+    radial-gradient(760px 580px at 50% 105%, rgba(214, 174, 91, 0.12), transparent 64%),
+    #050409;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.32;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse at center, black 18%, transparent 72%);
 }
 
 .alpha-app {
   position: relative;
   width: 100%;
-  max-width: 390px;
+  max-width: min(100vw, 430px);
   height: 100dvh;
   min-height: 100dvh;
   margin: 0 auto;
@@ -43,4 +63,81 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+#alpha-fallback-home > div,
+#alpha-fallback-quiz > div,
+#alpha-fallback-result > div,
+#alpha-fallback-friends > div,
+#alpha-fallback-future > div {
+  max-width: min(100vw, 430px) !important;
+}
+
+@media (max-width: 430px) {
+  body {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .alpha-app {
+    max-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 700px) {
+  body {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .alpha-app {
+    width: min(430px, calc(100vw - 48px));
+    height: min(900px, calc(100dvh - 48px));
+    min-height: min(720px, calc(100dvh - 48px));
+    border-radius: 34px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08),
+      0 28px 90px rgba(0,0,0,0.58),
+      0 0 120px rgba(112,76,255,0.18);
+  }
+
+  #alpha-fallback-home,
+  #alpha-fallback-quiz,
+  #alpha-fallback-result,
+  #alpha-fallback-friends,
+  #alpha-fallback-future {
+    align-items: center !important;
+    padding: 24px !important;
+  }
+
+  #alpha-fallback-home > div,
+  #alpha-fallback-quiz > div,
+  #alpha-fallback-result > div,
+  #alpha-fallback-friends > div,
+  #alpha-fallback-future > div {
+    width: min(430px, calc(100vw - 48px)) !important;
+    height: min(900px, calc(100dvh - 48px)) !important;
+    border-radius: 34px !important;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08),
+      0 28px 90px rgba(0,0,0,0.58),
+      0 0 120px rgba(112,76,255,0.18) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  body::after {
+    content: "AI Survival Index";
+    position: fixed;
+    left: max(32px, calc((100vw - 980px) / 2));
+    bottom: 32px;
+    pointer-events: none;
+    color: rgba(255,255,255,0.08);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(42px, 6vw, 84px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
 }

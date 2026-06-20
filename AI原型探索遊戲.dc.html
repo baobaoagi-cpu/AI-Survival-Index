@@ -273,6 +273,19 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     localStorage.setItem('quizPersisted', String(payload.persisted));
     if (payload.sessionId) localStorage.setItem('quizSessionId', payload.sessionId);
     if (payload.profileId) localStorage.setItem('profileId', payload.profileId);
+    if (window.AI_SURVIVAL_TRACK) {
+      window.AI_SURVIVAL_TRACK.track('completed_quiz', {
+        sessionId: payload.sessionId,
+        profileId: payload.profileId,
+        metadata: {
+          persisted: payload.persisted,
+          primaryType: payload.primaryType,
+          secondaryType: payload.secondaryType,
+          evolutionType: payload.evolutionType,
+          apiError: payload.apiError,
+        },
+      });
+    }
     return payload;
   }
 
@@ -421,6 +434,13 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
       mood: option.mood,
       title: option.title,
     });
+    if (window.AI_SURVIVAL_TRACK) {
+      window.AI_SURVIVAL_TRACK.track('answered_question', {
+        scenarioId: state.answers[state.answers.length - 1].scenarioId,
+        optionId,
+        metadata: { step: state.step + 1, selectedKey: key, selectedType: arch[key].name },
+      });
+    }
     if (state.step < scenarios.length - 1) {
       state.step += 1;
       renderQuestion();
@@ -540,6 +560,13 @@ class Component extends DCLogic {
         title: picked.title
       }
     ];
+    if (window.AI_SURVIVAL_TRACK) {
+      window.AI_SURVIVAL_TRACK.track('answered_question', {
+        scenarioId: answers[answers.length - 1].scenarioId,
+        optionId,
+        metadata: { step: cur + 1, selectedKey: key, selectedType: this.arch[key].name },
+      });
+    }
     this.setState({ tally, answers, flash: true });
     clearTimeout(this._adv);
     this._adv = setTimeout(() => {

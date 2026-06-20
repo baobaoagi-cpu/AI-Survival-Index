@@ -16,8 +16,12 @@ const htmlFiles = [
 const staticFiles = [
   "support.js",
   "alpha-app.css",
+  "tracking.js",
+  "manifest.webmanifest",
+  "sw.js",
   ".thumbnail",
   "data/archetypes.js",
+  "assets/pwa/icon.svg",
   "assets/archetypes/.gitkeep",
   "assets/archetypes/archetype-crests-preview.png",
   "assets/archetypes/builder.png",
@@ -47,9 +51,9 @@ for (const file of htmlFiles) {
     ? source
     : source.replace(
         '<script src="./data/archetypes.js"></script>',
-        '<script src="./runtime-config.js"></script>\n<script src="./data/archetypes.js"></script>',
+        '<script src="./runtime-config.js"></script>\n<script src="./tracking.js"></script>\n<script src="./data/archetypes.js"></script>',
       );
-  writeFileSync(targetPath, withConfig, "utf8");
+  writeFileSync(targetPath, injectPwaTags(withConfig), "utf8");
 }
 
 for (const file of staticFiles) {
@@ -67,7 +71,7 @@ writeFileSync(
 
 writeFileSync(
   join(outDir, "index.html"),
-  `<!doctype html>
+  injectPwaTags(`<!doctype html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
@@ -79,7 +83,7 @@ writeFileSync(
   <a href="./AI時代生存指數.dc.html">進入 AI 時代生存指數 Alpha</a>
 </body>
 </html>
-`,
+`),
   "utf8",
 );
 
@@ -101,4 +105,19 @@ function copyFile(sourceRelative, targetRelative = sourceRelative) {
   if (!existsSync(sourcePath) || statSync(sourcePath).isDirectory()) return;
   mkdirSync(dirname(targetPath), { recursive: true });
   copyFileSync(sourcePath, targetPath);
+}
+
+function injectPwaTags(html) {
+  if (html.includes("manifest.webmanifest")) return html;
+  return html.replace(
+    "</head>",
+    [
+      '  <meta name="theme-color" content="#070510">',
+      '  <link rel="manifest" href="./manifest.webmanifest">',
+      '  <link rel="icon" href="./assets/pwa/icon.svg" type="image/svg+xml">',
+      '  <link rel="apple-touch-icon" href="./assets/pwa/icon.svg">',
+      '  <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));</script>',
+      "</head>",
+    ].join("\n"),
+  );
 }

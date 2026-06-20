@@ -211,6 +211,8 @@ function renderTab() {
 function dashboardTemplate(data: any = {}) {
   const totals = data.totals ?? {};
   const distribution = data.archetypeDistribution ?? {};
+  const funnel = data.funnel ?? {};
+  const funnelEvents = funnel.events ?? {};
   return `
     <section class="metric-grid">
       ${metric("用戶總數", totals.users)}
@@ -218,7 +220,22 @@ function dashboardTemplate(data: any = {}) {
       ${metric("24h 完成", totals.completedLast24h)}
       ${metric("好友關係", totals.friendLinks)}
       ${metric("分享事件", totals.shareEvents)}
-      ${metric("Supabase", data.health?.supabase ? "正常" : "待確認")}
+      ${metric("行為事件", totals.userEvents)}
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h3>封測漏斗</h3><span>${funnel.available ? "user_events 已啟用" : "事件表尚未啟用"}</span></div>
+      ${
+        funnel.available
+          ? `<div class="funnel-grid">
+              ${funnelStep("進站", funnelEvents.openedApp)}
+              ${funnelStep("開始測驗", funnelEvents.startedQuiz)}
+              ${funnelStep("完成測驗", funnelEvents.completedQuiz)}
+              ${funnelStep("看結果", funnelEvents.viewedResult)}
+              ${funnelStep("好友圈", funnelEvents.openedFriendWall)}
+              ${funnelStep("分享點擊", funnelEvents.clickedShare)}
+            </div>`
+          : `<div class="empty-state">正式 Supabase 需要先套用 <code>user_events</code> migration，之後這裡會顯示完整封測漏斗。</div>`
+      }
     </section>
     <section class="panel">
       <div class="panel-head"><h3>九大原型分布</h3><span>最近 1000 筆結果</span></div>
@@ -227,6 +244,14 @@ function dashboardTemplate(data: any = {}) {
           .filter(([key]) => key !== "unknown")
           .map(([key, label]) => bar(label, Number(distribution[key] ?? 0), maxValue(distribution)))
           .join("")}
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h3>每題答題事件</h3><span>用來觀察題目卡點</span></div>
+      <div class="bars">
+        ${Object.entries(funnel.answerCountsByScenario ?? {})
+          .map(([scenario, value]) => bar(scenario, Number(value), maxValue(funnel.answerCountsByScenario ?? {})))
+          .join("") || `<div class="empty-state">尚無答題事件</div>`}
       </div>
     </section>
   `;
@@ -330,6 +355,10 @@ function friendsTemplate(data: any = {}) {
 
 function metric(label: string, value: unknown) {
   return `<article class="metric"><span>${label}</span><strong>${value ?? 0}</strong></article>`;
+}
+
+function funnelStep(label: string, value: unknown) {
+  return `<article class="funnel-step"><span>${label}</span><strong>${value ?? 0}</strong></article>`;
 }
 
 function bar(label: string, value: number, max: number) {

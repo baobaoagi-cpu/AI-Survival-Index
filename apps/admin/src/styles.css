@@ -277,6 +277,56 @@ code {
   gap: 12px;
 }
 
+.funnel-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.funnel-step {
+  position: relative;
+  min-height: 92px;
+  border: 1px solid rgba(216, 180, 107, 0.18);
+  border-radius: 18px;
+  padding: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(216, 180, 107, 0.18), transparent 54%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.funnel-step::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  border-top: 1px solid rgba(255,255,255,0.16);
+  border-right: 1px solid rgba(255,255,255,0.16);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.funnel-step span {
+  display: block;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+}
+
+.funnel-step strong {
+  display: block;
+  margin-top: 14px;
+  font-size: 26px;
+}
+
+.empty-state {
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 18px;
+  color: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.035);
+}
+
 .bar-row {
   display: grid;
   grid-template-columns: 108px minmax(0, 1fr) 44px;
@@ -455,6 +505,10 @@ td:nth-child(2) {
   .metric-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .funnel-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -470,6 +524,7 @@ td:nth-child(2) {
   }
 
   .metric-grid,
+  .funnel-grid,
   .card-grid {
     grid-template-columns: 1fr;
   }

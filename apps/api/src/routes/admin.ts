@@ -98,18 +98,27 @@ adminRoute.get("/summary", async (c) => {
   const supabase = requireSupabase();
   if (!supabase) return c.json({ error: "supabase is not configured" }, 503);
 
-  const [profiles, sessions, shares, friendLinks, results] = await Promise.all([
+  const [profiles, sessions, shares, friendLinks, results, events] = await Promise.all([
     countRows(supabase, "profiles"),
     countRows(supabase, "quiz_sessions"),
     countRows(supabase, "share_events"),
     countRows(supabase, "friend_links"),
     supabase.from("archetype_results").select("primary_type, created_at").order("created_at", { ascending: false }).limit(1000),
+    supabase
+      .from("user_events")
+      .select("event_name,scenario_id,occurred_at")
+      .order("occurred_at", { ascending: false })
+      .limit(3000),
   ]);
 
   const now = Date.now();
   const oneDayAgo = now - 1000 * 60 * 60 * 24;
   const recentResults = (results.data ?? []).filter((item) => Date.parse(String(item.created_at)) >= oneDayAgo);
   const distribution = countBy(results.data ?? [], "primary_type");
+  const eventRows = events.data ?? [];
+  const eventCounts = countBy(eventRows, "event_name");
+  const answerEvents = eventRows.filter((event) => event.event_name === "answered_question");
+  const answerCountsByScenario = countBy(answerEvents, "scenario_id");
 
   return c.json({
     totals: {
@@ -118,11 +127,29 @@ adminRoute.get("/summary", async (c) => {
       shareEvents: shares.count,
       friendLinks: friendLinks.count,
       completedLast24h: recentResults.length,
+      userEvents: events.error ? 0 : eventRows.length,
     },
     archetypeDistribution: distribution,
+    funnel: {
+      available: !events.error,
+      error: events.error?.message ?? null,
+      events: {
+        openedApp: eventCounts.opened_app ?? 0,
+        startedQuiz: eventCounts.started_quiz ?? 0,
+        answeredQuestion: eventCounts.answered_question ?? 0,
+        completedQuiz: eventCounts.completed_quiz ?? 0,
+        viewedResult: eventCounts.viewed_result ?? 0,
+        openedFriendWall: eventCounts.opened_friend_wall ?? 0,
+        clickedShare: eventCounts.clicked_share ?? 0,
+        clickedInvite: eventCounts.clicked_invite ?? 0,
+        enteredMembershipPage: eventCounts.entered_membership_page ?? 0,
+      },
+      answerCountsByScenario,
+    },
     health: {
       api: true,
       supabase: !profiles.error && !sessions.error,
+      events: !events.error,
       lastCheckedAt: new Date().toISOString(),
     },
   });
