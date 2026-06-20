@@ -7,6 +7,7 @@ packages/*/dist/
 .env.local
 .DS_Store
 .admin-vite*.log
+wrangler-login-*.log
 .chrome-alpha-check/
 .thumbnail
 deploy/cloudflare-alpha/

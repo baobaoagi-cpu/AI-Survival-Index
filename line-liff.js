@@ -16,12 +16,32 @@
       localStorage.getItem("AI_SURVIVAL_REQUIRE_LINE_LOGIN") === "true",
   };
 
+  const copy = {
+    title: "\u0041\u0049 \u6642\u4ee3\u751f\u5b58\u6307\u6578",
+    inviteLead: "\u5206\u4eab\u7d66\u4f60\u7684\u4e00\u500b\u6e2c\u9a57",
+    inviteText:
+      "\u6211\u525b\u6e2c\u51fa\u81ea\u5df1\u7684 AI \u4eba\u683c\u539f\u578b\u3002\u4f60\u4e5f\u4f86\u770b\u770b\u81ea\u5df1\u5728\u8d85\u667a\u80fd\u6642\u4ee3\u7684\u4f4d\u7f6e\u3002",
+    cardTitle: "\u8d85\u667a\u80fd\u6642\u4ee3\u4f86\u81e8",
+    cardSubtitle: "\u4f60\u5c6c\u65bc\u54ea\u500b\u4f4d\u7f6e\uff1f",
+    cardBody: "30 \u79d2\u6e2c\u51fa\u4f60\u7684 AI \u4eba\u683c\u539f\u578b\uff0c\u770b\u770b\u4f60\u548c\u597d\u53cb\u8ab0\u5df2\u7d93\u627e\u5230\u65b9\u5411\u3002",
+    cta: "\u958b\u59cb\u6e2c\u9a57",
+  };
+
+  function publicOrigin() {
+    if (window.location.protocol === "https:") return window.location.origin;
+    return config.productionOrigin.replace(/\/$/, "");
+  }
+
   function apiBase() {
     return (
       localStorage.getItem("AI_SURVIVAL_API_BASE_URL") ||
       window.AI_SURVIVAL_API_BASE_URL ||
       "https://ai-survivalapi-production.up.railway.app"
     ).replace(/\/$/, "");
+  }
+
+  function assetUrl(path) {
+    return `${publicOrigin()}/${path.replace(/^\.\//, "").replace(/^\//, "")}`;
   }
 
   function storeReferralFromUrl() {
@@ -184,8 +204,7 @@
     const profileId = extra.profileId || localStorage.getItem("profileId");
     if (profileId) params.set("ref", profileId);
 
-    const origin = window.location.protocol === "https:" ? window.location.origin : config.productionOrigin;
-    const endpointUrl = `${origin.replace(/\/$/, "")}/`;
+    const endpointUrl = `${publicOrigin()}/`;
     const query = params.toString();
     const webUrl = query ? `${endpointUrl}?${query}` : endpointUrl;
 
@@ -203,18 +222,101 @@
       : webUrl;
   }
 
+  function buildInviteFlex(url, options = {}) {
+    const title = options.title || copy.title;
+    const lead = options.lead || copy.inviteLead;
+    const text = options.text || copy.cardBody;
+    const imageUrl = options.imageUrl || assetUrl("assets/share-cards/game-invite.png");
+
+    return {
+      type: "flex",
+      altText: `${lead}｜${title}`,
+      contents: {
+        type: "bubble",
+        size: "mega",
+        hero: {
+          type: "image",
+          url: imageUrl,
+          size: "full",
+          aspectRatio: "1200:630",
+          aspectMode: "cover",
+          action: {
+            type: "uri",
+            uri: url,
+          },
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          spacing: "md",
+          backgroundColor: "#090713",
+          contents: [
+            {
+              type: "text",
+              text: lead,
+              size: "xs",
+              color: "#D8C4FF",
+              weight: "bold",
+            },
+            {
+              type: "text",
+              text: copy.cardTitle,
+              size: "xl",
+              color: "#FFFFFF",
+              weight: "bold",
+              wrap: true,
+            },
+            {
+              type: "text",
+              text: copy.cardSubtitle,
+              size: "lg",
+              color: "#BFD8FF",
+              weight: "bold",
+              wrap: true,
+            },
+            {
+              type: "text",
+              text,
+              size: "sm",
+              color: "#D9DEEA",
+              wrap: true,
+              margin: "sm",
+            },
+          ],
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          backgroundColor: "#090713",
+          contents: [
+            {
+              type: "button",
+              style: "primary",
+              color: "#8B5CF6",
+              action: {
+                type: "uri",
+                label: copy.cta,
+                uri: url,
+              },
+            },
+          ],
+        },
+      },
+    };
+  }
+
   async function shareGame(options = {}) {
     const url = options.url || (await permanentGameUrl(options));
-    const title = options.title || "AI 時代生存指數";
-    const text =
-      options.text ||
-      "我剛測出自己的 AI 人格原型。你也來看看自己在超智能時代的位置。";
+    const title = options.title || copy.title;
+    const text = options.text || copy.inviteText;
 
     return share([
-      {
-        type: "text",
-        text: `${title}\n${text}\n${url}`,
-      },
+      buildInviteFlex(url, {
+        title,
+        text,
+        lead: options.lead,
+        imageUrl: options.imageUrl,
+      }),
     ]);
   }
 
@@ -224,6 +326,7 @@
     shareGame,
     gameUrl,
     permanentGameUrl,
+    buildInviteFlex,
     getStatus: () => window.AI_SURVIVAL_LINE_STATUS,
   };
 })();
