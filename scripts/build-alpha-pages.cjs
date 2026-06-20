@@ -43,7 +43,7 @@ writeFileSync(
 );
 writeFileSync(
   join(outDir, 'index.html'),
-  injectPwaTags(`<!doctype html>\n<html lang="zh-Hant">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>AI Survival Index Alpha</title>\n  <meta http-equiv="refresh" content="0; url=./AI時代生存指數.dc.html">\n</head>\n<body>\n  <a href="./AI時代生存指數.dc.html">Enter AI Survival Index Alpha</a>\n</body>\n</html>\n`),
+  injectPwaTags(`<!doctype html>\n<html lang="zh-Hant">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>AI Survival Index Alpha</title>\n  <meta http-equiv="refresh" content="0; url=./AI%E6%99%82%E4%BB%A3%E7%94%9F%E5%AD%98%E6%8C%87%E6%95%B8.dc.html">\n</head>\n<body>\n  <a href="./AI%E6%99%82%E4%BB%A3%E7%94%9F%E5%AD%98%E6%8C%87%E6%95%B8.dc.html">Enter AI Survival Index Alpha</a>\n</body>\n</html>\n`),
   'utf8',
 );
 writeFileSync(join(outDir, '_headers'), `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
