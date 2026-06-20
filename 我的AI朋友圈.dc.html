@@ -185,6 +185,12 @@
     { key: 'inventor', count: 2 },
     { key: 'mentor', count: 1 },
   ];
+  const compassSegments = [
+    { key: 'compass', label: '指南針中心', count: 3, note: '已啟動深度導航', color: '#d7ad55' },
+    { key: 'oriented', label: '已校準方向', count: 4, note: '已表達想解鎖報告', color: '#76dfd3' },
+    { key: 'archetyped', label: '星軌區', count: 7, note: '已知道自己的 AI 原型', color: '#a982ff' },
+    { key: 'unknown', label: '迷霧區', count: 2, note: '還沒完成測驗或仍在觀望', color: '#8b90a8' },
+  ];
   const initials = ['林','陳','王','李','張','黃','吳','劉','蔡','楊','許','鄭','謝','郭','洪','曾'];
   function getType(key, fallback = 'explorer') {
     const resolvedKey = arch[key] ? key : fallback;
@@ -213,6 +219,9 @@
   function render() {
     const me = getType(loadPrimary());
     const total = distribution.reduce((sum, item) => sum + item.count, 0);
+    const compassTotal = compassSegments.reduce((sum, item) => sum + item.count, 0);
+    const compassCount = compassSegments.find((item) => item.key === 'compass')?.count || 0;
+    const fogCount = compassSegments.find((item) => item.key === 'unknown')?.count || 0;
     const tiles = [];
     let seed = 0;
     distribution.forEach((row) => {
@@ -222,9 +231,9 @@
     const top = getType(distribution[0].key);
     stage.innerHTML = `
       <div style="padding:58px 24px 36px;">
-        <div style="font-family:Arial,sans-serif; font-size:11.5px; letter-spacing:0.2em; color:#cba6ff;">LINE CREST WALL</div>
-        <div style="font-size:36px; font-weight:900; line-height:1.1; margin-top:14px;">我的 AI 家徽牆</div>
-        <div style="font-size:14px; color:rgba(255,255,255,0.55); margin-top:8px;">LINE 好友圈 · <b style="color:#fff;">${total}</b> 位朋友 · ${distribution.length} 種原型</div>
+        <div style="font-family:Arial,sans-serif; font-size:11.5px; letter-spacing:0.2em; color:#cba6ff;">SOCIAL COMPASS</div>
+        <div style="font-size:36px; font-weight:900; line-height:1.1; margin-top:14px;">我的 AI 指南針好友圈</div>
+        <div style="font-size:14px; color:rgba(255,255,255,0.55); margin-top:8px;">你的好友裡，已有 <b style="color:#fff;">${compassCount}</b> 人啟動指南針，還有 ${fogCount} 人仍在迷霧中。</div>
         <div style="margin-top:22px; border-radius:26px; padding:18px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.035)); box-shadow:0 24px 70px rgba(0,0,0,0.34);">
           <div style="display:flex; align-items:center; gap:16px;">
             <div style="width:118px; height:118px; border-radius:26px; border:1px solid rgba(214,174,91,0.6); background:linear-gradient(180deg,#fffdf8,#f4efe4); padding:9px; box-shadow:0 18px 48px rgba(0,0,0,0.42), 0 0 34px ${me.glow};">
@@ -233,11 +242,23 @@
             <div style="flex:1;">
               <div style="font-family:Arial,sans-serif; font-size:11px; letter-spacing:0.2em; color:${me.color};">MY CREST ${escapeHtml(me.n)}</div>
               <div style="font-size:27px; font-weight:900; line-height:1.12; margin-top:6px;">${escapeHtml(me.name)}</div>
-              <div style="font-size:13px; line-height:1.55; color:rgba(255,255,255,0.58); margin-top:8px;">你的家徽在好友圈中的位置已標記。</div>
+              <div style="font-size:13px; line-height:1.55; color:rgba(255,255,255,0.58); margin-top:8px;">你的家徽已標記在好友圈星圖中。下一步，是校準自己的指南針。</div>
             </div>
           </div>
         </div>
-        <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; margin-top:30px;">好友家徽牆</div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; margin-top:30px;">好友方向雷達</div>
+        <div style="margin-top:14px; border-radius:24px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.045); padding:16px;">
+          <div style="position:relative; width:230px; height:230px; margin:0 auto 16px; border-radius:50%; border:1px solid rgba(214,174,91,0.44); background:radial-gradient(circle at 50% 50%, rgba(214,174,91,0.18), rgba(118,223,211,0.08) 34%, rgba(169,130,255,0.08) 58%, rgba(139,144,168,0.08) 80%, transparent 100%); box-shadow:0 0 42px rgba(118,223,211,0.14);">
+            <div style="position:absolute; inset:34px; border-radius:50%; border:1px dashed rgba(255,255,255,0.18);"></div>
+            <div style="position:absolute; inset:72px; border-radius:50%; border:1px dashed rgba(255,255,255,0.22);"></div>
+            <div style="position:absolute; left:50%; top:50%; width:58px; height:58px; margin:-29px 0 0 -29px; border-radius:50%; border:1px solid rgba(214,174,91,0.76); background:rgba(214,174,91,0.16); display:flex; align-items:center; justify-content:center; font-size:25px; box-shadow:0 0 28px rgba(214,174,91,0.34);">⌖</div>
+            ${compassDots(compassSegments)}
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            ${compassSegments.map(segmentCard).join('')}
+          </div>
+        </div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; margin-top:30px;">好友家徽牆 · ${total} 位朋友</div>
         <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin-top:14px;">
           ${tiles.map(tile).join('')}
         </div>
@@ -246,8 +267,8 @@
           <div style="font-size:16px; font-weight:900; line-height:1.5;">你的圈子最多的是 ${escapeHtml(top.name)}</div>
           <div style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:8px;">好友家徽牆比全台平均更願意嘗試 AI。</div>
         </div>
-        <button data-action="future" style="${buttonStyle(true)} margin-top:28px;">開啟未來導航</button>
-        <button data-action="share" style="${buttonStyle(false)} margin-top:12px;">分享我的 AI 家徽牆</button>
+        <button data-action="future" style="${buttonStyle(true)} margin-top:28px;">啟動我的指南針</button>
+        <button data-action="share" style="${buttonStyle(false)} margin-top:12px;">分享我的 AI 指南針好友圈</button>
         <button data-action="invite" style="width:100%; margin-top:18px; border:0; background:transparent; color:rgba(255,255,255,0.45); font-family:inherit; font-size:13px; cursor:pointer;">邀請朋友一起測測看</button>
       </div>
     `;
@@ -255,6 +276,25 @@
   }
   function tile(item) {
     return `<div style="min-width:0; border-radius:18px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); padding:10px 7px 9px; text-align:center; overflow:hidden;"><div style="width:70px; height:70px; margin:0 auto; border-radius:18px; border:1px solid rgba(214,174,91,0.46); background:linear-gradient(180deg,#fffdf8,#f4efe4); box-shadow:0 0 18px ${item.glow}; padding:4px;"><img src="${item.portraitPath}" alt="${escapeHtml(item.name)}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:13px;"></div><div style="font-size:14px; font-weight:900; color:rgba(255,255,255,0.94); margin-top:8px;">${escapeHtml(item.initial)}</div><div style="font-size:10.5px; color:${item.color}; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.shortName)}</div></div>`;
+  }
+  function compassDots(segments) {
+    const dots = [];
+    const radii = { compass: 36, oriented: 68, archetyped: 92, unknown: 108 };
+    let index = 0;
+    segments.forEach((segment) => {
+      for (let i = 0; i < segment.count; i++) {
+        const angle = ((index * 47 + i * 23) % 360) * Math.PI / 180;
+        const radius = radii[segment.key] || 90;
+        const x = 115 + Math.cos(angle) * radius;
+        const y = 115 + Math.sin(angle) * radius;
+        dots.push(`<span title="${escapeHtml(segment.label)}" style="position:absolute; left:${x}px; top:${y}px; width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%; background:${segment.color}; box-shadow:0 0 12px ${segment.color};"></span>`);
+        index += 1;
+      }
+    });
+    return dots.join('');
+  }
+  function segmentCard(segment) {
+    return `<div style="border-radius:16px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.16); padding:12px;"><div style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><span style="font-size:13px; font-weight:900; color:#fff;">${escapeHtml(segment.label)}</span><b style="font-family:Arial,sans-serif; color:${segment.color};">${segment.count}</b></div><div style="font-size:11px; line-height:1.45; color:rgba(255,255,255,0.52); margin-top:5px;">${escapeHtml(segment.note)}</div></div>`;
   }
   function buttonStyle(primary) {
     return `width:100%; height:${primary ? 58 : 52}px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:${primary ? 17 : 15}px; font-weight:900; color:#fff; border:1px solid rgba(255,255,255,0.2); background:${primary ? 'linear-gradient(100deg,#8758ff,#d94fa8,#4e9fff)' : 'rgba(255,255,255,0.06)'};`;

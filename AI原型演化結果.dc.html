@@ -318,9 +318,22 @@
         ${pathCard('01 · 主人格', current)}
         ${pathCard('02 · 第二天性', secondary)}
         ${pathCard('03 · 未來進化', future, progress)}
-        <button data-action="friends" style="${buttonStyle(true)} margin-top:28px;">查看我的 AI 家徽牆</button>
+        ${reportUnlockPanel(current, secondary, future)}
+        <button data-action="friends" style="${buttonStyle(true)} margin-top:18px;">查看我的 AI 家徽牆</button>
         <button data-action="share" style="${buttonStyle(false)} margin-top:12px;">分享我的演化路徑</button>
         <button data-action="restart" style="width:100%; margin-top:18px; border:0; background:transparent; color:rgba(255,255,255,0.45); font-family:inherit; font-size:13px; cursor:pointer;">重新探索</button>
+      </div>
+    `;
+  }
+  function reportUnlockPanel(current, secondary, future) {
+    const payload = `${current.key}:${secondary.key}:${future.key}`;
+    return `
+      <div style="margin-top:28px; padding:16px; border-radius:22px; border:1px solid rgba(214,174,91,0.28); background:linear-gradient(180deg, rgba(214,174,91,0.12), rgba(255,255,255,0.035)); box-shadow:0 18px 54px rgba(0,0,0,0.26);">
+        <div style="font-size:11px; letter-spacing:0.18em; color:rgba(214,174,91,0.88); font-weight:900;">FATE COMPASS</div>
+        <div style="font-size:20px; font-weight:900; line-height:1.3; margin-top:8px; color:#fff;">下一步，你想解鎖哪一層？</div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.58); line-height:1.65; margin-top:8px;">淺度報告用分享解鎖，深度報告先記錄購買意願。封測階段不會收款。</div>
+        <button data-action="shallowReport" data-report-context="${escapeHtml(payload)}" style="${buttonStyle(false)} margin-top:14px; height:56px; border-color:rgba(214,174,91,0.42); background:rgba(214,174,91,0.12);">分享 2 位好友解鎖淺度報告</button>
+        <button data-action="deepReportIntent" data-report-context="${escapeHtml(payload)}" style="${buttonStyle(true)} margin-top:10px; height:56px;">我想買深度報告</button>
       </div>
     `;
   }
@@ -371,12 +384,50 @@
   function buttonStyle(primary) {
     return `width:100%; height:${primary ? 58 : 52}px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:${primary ? 17 : 15}px; font-weight:900; color:#fff; border:1px solid rgba(255,255,255,0.2); background:${primary ? 'linear-gradient(100deg,#8758ff,#d94fa8,#4e9fff)' : 'rgba(255,255,255,0.06)'};`;
   }
-  function toast() {
+  function toast(message) {
     const el = document.createElement('div');
-    el.textContent = 'LINE 分享功能將於 LIFF 版本開啟';
+    el.textContent = message || 'LINE 分享功能將於 LIFF 版本開啟';
     el.style.cssText = 'position:absolute; left:24px; right:24px; bottom:28px; z-index:6; padding:15px 18px; border-radius:18px; border:1px solid rgba(255,255,255,0.16); background:rgba(12,10,24,0.94); box-shadow:0 14px 36px rgba(0,0,0,0.45); text-align:center; font-size:14px; line-height:1.55; color:rgba(255,255,255,0.92);';
     stage.appendChild(el);
-    setTimeout(() => el.remove(), 2200);
+    setTimeout(() => el.remove(), 2600);
+  }
+  function apiBase() {
+    return (
+      localStorage.getItem('AI_SURVIVAL_API_BASE_URL') ||
+      window.AI_SURVIVAL_API_BASE_URL ||
+      'https://ai-survivalapi-production.up.railway.app'
+    ).replace(/\/$/, '');
+  }
+  function lineUserId() {
+    const explicit = localStorage.getItem('AI_SURVIVAL_LINE_USER_ID');
+    if (explicit) return explicit;
+    const generated = 'local-alpha-' + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem('AI_SURVIVAL_LINE_USER_ID', generated);
+    return generated;
+  }
+  function trackIntent(eventName, metadata) {
+    if (window.AI_SURVIVAL_TRACK?.track) {
+      window.AI_SURVIVAL_TRACK.track(eventName, { metadata });
+      return;
+    }
+    fetch(apiBase() + '/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        eventName,
+        page: decodeURIComponent(location.pathname.split('/').pop() || 'result'),
+        profileId: localStorage.getItem('profileId') || null,
+        sessionId: localStorage.getItem('quizSessionId') || null,
+        lineUserId: lineUserId(),
+        metadata: {
+          primaryType: localStorage.getItem('primaryType'),
+          secondaryType: localStorage.getItem('secondaryType'),
+          evolutionType: localStorage.getItem('evolutionType'),
+          ...metadata,
+        },
+      }),
+    }).catch(() => null);
   }
   function bind() {
     stage.querySelectorAll('[data-action]').forEach((el) => {
@@ -385,7 +436,17 @@
         if (action === 'detail') detail = true;
         if (action === 'share') shareOpen = true;
         if (action === 'closeShare') shareOpen = false;
-        if (action === 'notify') { shareOpen = false; render(); toast(); return; }
+        if (action === 'notify') { shareOpen = false; render(); trackIntent('clicked_share', { source: 'share_card_modal' }); toast('LINE 分享功能將於 LIFF 版本開啟'); return; }
+        if (action === 'shallowReport') {
+          trackIntent('clicked_shallow_report_unlock', { unlockType: 'share_2_friends', reportContext: el.getAttribute('data-report-context') });
+          toast('已記錄：你想用分享解鎖淺度報告。LIFF 分享上線後會計算 2 位好友。');
+          return;
+        }
+        if (action === 'deepReportIntent') {
+          trackIntent('clicked_deep_report_intent', { product: 'deep_report', reportContext: el.getAttribute('data-report-context') });
+          toast('已記錄：你想買深度報告。封測階段先不收款。');
+          return;
+        }
         if (action === 'restart') { window.location.href = './AI原型探索遊戲.dc.html'; return; }
         if (action === 'friends') { window.location.href = './我的AI朋友圈.dc.html'; return; }
         render();

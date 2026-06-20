@@ -24,6 +24,14 @@
   @keyframes bob { 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-7px) } }
   @keyframes spinSlow { to { transform:rotate(360deg) } }
   @keyframes dotPulse { 0%,100%{ opacity:1; transform:scale(1) } 50%{ opacity:0.35; transform:scale(0.78) } }
+  @keyframes starWheel { to { transform:rotate(360deg) } }
+  @keyframes starWheelReverse { to { transform:rotate(-360deg) } }
+  @keyframes starBlink { 0%,100%{ opacity:0.42; filter:drop-shadow(0 0 8px rgba(203,166,255,0.32)) } 45%{ opacity:1; filter:drop-shadow(0 0 18px rgba(118,223,211,0.68)) } }
+  @keyframes crestFlicker { 0%,100%{ opacity:0.78; filter:drop-shadow(0 0 6px rgba(216,180,107,0.22)) } 50%{ opacity:1; filter:drop-shadow(0 0 14px rgba(118,223,211,0.42)) } }
+  @keyframes crestSelfSpin { to { transform:rotate(360deg) } }
+  .orbit-crest { position:absolute; left:50%; top:50%; width:36px; height:36px; margin:-18px 0 0 -18px; transform:rotate(var(--angle)) translateY(-114px); }
+  .orbit-crest img { width:36px; height:36px; object-fit:contain; border-radius:12px; background:#fffdf8; padding:3px; box-shadow:0 0 18px rgba(216,180,107,0.28); animation:crestSelfSpin 18s linear infinite, crestFlicker var(--pulse) ease-in-out infinite; }
+  .yuling-orb-canvas { width:150px; height:150px; display:block; border-radius:50%; opacity:0.96; mix-blend-mode:screen; filter:drop-shadow(0 0 18px rgba(118,223,211,0.34)); }
 </style>
 </helmet>
 
@@ -53,8 +61,8 @@
         <span style="width:7px; height:7px; border-radius:50%; background:oklch(0.78 0.18 152); box-shadow:0 0 10px oklch(0.78 0.18 152); animation:dotPulse 1.8s ease-in-out infinite;"></span>
         <span style="font-family:'Space Grotesk', sans-serif; font-size:12px; letter-spacing:0.16em; color:rgba(255,255,255,0.78);">即時演化中</span>
       </div>
-      <div style="font-size:30px; font-weight:700; color:rgba(255,255,255,0.9); letter-spacing:0.06em; line-height:1.1;">AI時代</div>
-      <div style="font-size:48px; font-weight:900; line-height:1.06; letter-spacing:-0.01em; margin-top:6px; background:linear-gradient(100deg, oklch(0.83 0.15 288), oklch(0.85 0.13 218), oklch(0.83 0.17 332)); background-size:200% 200%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:gshift 8s ease-in-out infinite;">你正在變成誰？</div>
+      <div style="font-size:30px; font-weight:700; color:rgba(255,255,255,0.9); letter-spacing:0.06em; line-height:1.1;">超智能時代來臨</div>
+      <div style="font-size:38px; font-weight:900; line-height:1.04; letter-spacing:-0.01em; margin-top:6px; white-space:nowrap; background:linear-gradient(100deg, oklch(0.83 0.15 288), oklch(0.85 0.13 218), oklch(0.83 0.17 332)); background-size:200% 200%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:gshift 8s ease-in-out infinite;">你屬於哪個位置？</div>
       <div style="font-size:16px; color:rgba(255,255,255,0.6); line-height:1.75; margin-top:20px; max-width:300px; text-wrap:pretty;">探索你的 AI 人格原型，<br>以及你正在演化的未來方向。</div>
     </div>
 
@@ -130,13 +138,29 @@
   <div style="position:relative; width:100%; max-width:390px; min-height:100dvh; overflow:hidden; background:#070510;">
     <div style="position:absolute; inset:0; background:radial-gradient(140% 60% at 50% -10%, rgba(153,96,255,0.32), transparent 60%), radial-gradient(90% 60% at 80% 72%, rgba(38,190,190,0.24), transparent 62%);"></div>
     <div style="position:absolute; inset:0; opacity:0.45; background-image:radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size:3px 3px;"></div>
-    <div style="position:relative; min-height:100dvh; display:flex; flex-direction:column; justify-content:center; padding:42px 24px 32px; text-align:center;">
+    <div style="position:relative; min-height:100dvh; display:flex; flex-direction:column; justify-content:flex-start; padding:34px 24px 28px; text-align:center;">
+      <div style="position:relative; height:250px; margin:8px auto 22px; width:250px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle, rgba(203,166,255,0.16), rgba(118,223,211,0.08) 36%, transparent 68%); filter:blur(1px);"></div>
+        <div style="position:absolute; width:210px; height:210px; border-radius:50%; display:grid; place-items:center; border:1px solid rgba(214,174,91,0.26); box-shadow:0 0 34px rgba(118,223,211,0.12); animation:starWheelReverse 34s linear infinite;"></div>
+        <canvas class="yuling-orb-canvas" data-yuling-orb aria-hidden="true" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);"></canvas>
+        <div style="position:absolute; width:228px; height:228px; border-radius:50%; animation:starWheelReverse 42s linear infinite;">
+          <span class="orbit-crest" style="--angle:0deg; --pulse:2.4s;"><img src="./assets/archetypes/explorer.png" alt=""></span>
+          <span class="orbit-crest" style="--angle:40deg; --pulse:2.8s;"><img src="./assets/archetypes/craftsman.png" alt=""></span>
+          <span class="orbit-crest" style="--angle:80deg; --pulse:2.2s;"><img src="./assets/archetypes/guardian.png" alt=""></span>
+          <span class="orbit-crest" style="--angle:120deg; --pulse:3s;"><img src="./assets/archetypes/navigator.png" alt=""></span>
+          <span class="orbit-crest" style="--angle:160deg; --pulse:2.5s;"><img src="./assets/archetypes/strategist.png" alt=""></span>
+          <span class="orbit-crest" style="--angle:200deg; --pulse:2.9s;"><img src="./assets/archetypes/inventor.png" alt=""></span>
+          <span class="orbit-crest" style="--angle:240deg; --pulse:2.35s;"><img src="./assets/archetypes/trader.png" alt=""></span>
+          <span class="orbit-crest" style="--angle:280deg; --pulse:2.7s;"><img src="./assets/archetypes/mentor.png" alt=""></span>
+          <span class="orbit-crest" style="--angle:320deg; --pulse:2.15s;"><img src="./assets/archetypes/builder.png" alt=""></span>
+        </div>
+      </div>
       <div style="display:inline-flex; align-items:center; justify-content:center; align-self:center; gap:8px; padding:7px 15px; border-radius:999px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); margin-bottom:26px;">
         <span style="width:7px; height:7px; border-radius:50%; background:#84f0bd; box-shadow:0 0 10px #84f0bd;"></span>
         <span style="font-family:Arial,sans-serif; font-size:12px; letter-spacing:0.16em; color:rgba(255,255,255,0.78);">ALPHA READY</span>
       </div>
-      <div style="font-size:30px; font-weight:700; color:rgba(255,255,255,0.9); letter-spacing:0.06em; line-height:1.1;">AI時代</div>
-      <div style="font-size:48px; font-weight:900; line-height:1.06; margin-top:6px; background:linear-gradient(100deg, #d9b7ff, #9fd7ff, #ff9bd2); -webkit-background-clip:text; background-clip:text; color:transparent;">你正在變成誰？</div>
+      <div style="font-size:30px; font-weight:700; color:rgba(255,255,255,0.9); letter-spacing:0.06em; line-height:1.1;">超智能時代來臨</div>
+      <div style="font-size:38px; font-weight:900; line-height:1.04; margin-top:6px; white-space:nowrap; background:linear-gradient(100deg, #d9b7ff, #9fd7ff, #ff9bd2); -webkit-background-clip:text; background-clip:text; color:transparent;">你屬於哪個位置？</div>
       <div style="font-size:16px; color:rgba(255,255,255,0.62); line-height:1.75; margin:20px auto 0; max-width:300px;">探索你的 AI 人格原型，<br>以及你正在演化的未來方向。</div>
       <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin:34px 0 30px;">
         <div style="height:86px; border-radius:18px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg,#fffdf8,#f4efe4); color:#17120a; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900;">◇</div>
@@ -148,6 +172,256 @@
     </div>
   </div>
 </div>
+<script>
+(function initYulingOrb(){
+  const canvases = Array.from(document.querySelectorAll('[data-yuling-orb]'));
+  if (!canvases.length) return;
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const motionFX = {
+    bound: false,
+    enabled: false,
+    x: 0,
+    y: 0,
+    tx: 0,
+    ty: 0,
+    shake: 0,
+    lastShake: 0,
+    hue: null,
+    colorGlow: 0,
+    lastColor: 0
+  };
+  const motionHues = [28, 54, 158, 192, 210, 246, 285];
+
+  function pickMotionHue() {
+    let next = motionHues[(Math.random() * motionHues.length) | 0];
+    if (motionHues.length > 1 && next === motionFX.hue) {
+      next = motionHues[(motionHues.indexOf(next) + 1) % motionHues.length];
+    }
+    motionFX.hue = next;
+    motionFX.colorGlow = 1;
+    motionFX.lastColor = performance.now();
+  }
+
+  async function enableMotionFX() {
+    if (motionFX.bound) return true;
+    try {
+      const permissions = [];
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        permissions.push(DeviceOrientationEvent.requestPermission());
+      }
+      if (typeof DeviceMotionEvent !== 'undefined' &&
+          typeof DeviceMotionEvent.requestPermission === 'function') {
+        permissions.push(DeviceMotionEvent.requestPermission());
+      }
+      if (permissions.length) {
+        const results = await Promise.all(permissions);
+        if (results.some(result => result !== 'granted')) return false;
+      }
+      window.addEventListener('deviceorientation', event => {
+        motionFX.tx = clamp((event.gamma || 0) / 38, -1, 1);
+        motionFX.ty = clamp((event.beta || 0) / 48, -1, 1);
+        motionFX.enabled = true;
+        const tilt = Math.hypot(motionFX.tx, motionFX.ty);
+        if (tilt > 0.62 && performance.now() - motionFX.lastColor > 720) pickMotionHue();
+      }, true);
+      window.addEventListener('devicemotion', event => {
+        const a = event.accelerationIncludingGravity;
+        if (!a) return;
+        const force = Math.sqrt((a.x || 0) ** 2 + (a.y || 0) ** 2 + (a.z || 0) ** 2);
+        const now = performance.now();
+        if (force > 22 && now - motionFX.lastShake > 480) {
+          motionFX.shake = 1;
+          motionFX.lastShake = now;
+          pickMotionHue();
+        }
+      }, true);
+      motionFX.bound = true;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  const fallbackHome = document.getElementById('alpha-fallback-home') || document.body;
+  fallbackHome.addEventListener('pointermove', event => {
+    const rect = fallbackHome.getBoundingClientRect();
+    motionFX.tx = clamp(((event.clientX - rect.left) / rect.width - 0.5) * 2, -1, 1);
+    motionFX.ty = clamp(((event.clientY - rect.top) / rect.height - 0.5) * 2, -1, 1);
+    motionFX.enabled = true;
+  }, { passive: true });
+  window.addEventListener('pointerdown', enableMotionFX, { passive: true });
+  enableMotionFX();
+
+  canvases.forEach(canvas => {
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let t0 = null;
+    let hidx = 0;
+    let histSeeded = false;
+    let lx = 0;
+    let ly = 0;
+    let lvx = 0;
+    let lvy = 0;
+    let lhead = Math.random() * Math.PI * 2;
+    let lastRipple = 0;
+    const ripples = [];
+    const particleCount = 220;
+    const historyCount = 260;
+    const fage = new Float32Array(particleCount);
+    const flat = new Float32Array(particleCount);
+    const fper = new Float32Array(particleCount);
+    const fph = new Float32Array(particleCount);
+    const fsz = new Float32Array(particleCount);
+    const hx = new Float32Array(historyCount);
+    const hy = new Float32Array(historyCount);
+
+    for (let i = 0; i < particleCount; i += 1) {
+      fage[i] = Math.pow(Math.random(), 0.7);
+      flat[i] = Math.random() * 2 - 1;
+      fper[i] = 1 + Math.floor(Math.random() * 3);
+      fph[i] = Math.random() * Math.PI * 2;
+      fsz[i] = 0.42 + Math.random() * 0.82;
+    }
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(1, Math.round(rect.width * dpr));
+      height = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+        histSeeded = false;
+      }
+    }
+
+    function frame(ts) {
+      if (t0 === null) t0 = ts;
+      resize();
+
+      const t = (ts - t0) / 1000;
+      motionFX.x = lerp(motionFX.x, motionFX.tx, 0.08);
+      motionFX.y = lerp(motionFX.y, motionFX.ty, 0.08);
+      motionFX.shake *= 0.88;
+      motionFX.colorGlow *= 0.975;
+
+      const ambient = 0.36 + Math.sin(t * 0.86) * 0.06 + Math.sin(t * 1.9) * 0.035;
+      const gv = clamp(ambient + motionFX.shake * 0.24, 0.18, 0.82);
+      const baseHue = 192 + Math.sin(t * 0.23) * 22;
+      const hue = motionFX.hue === null ? baseHue : lerp(baseHue, motionFX.hue, Math.min(1, motionFX.colorGlow));
+      const sat = 40 + gv * 18;
+      const lit = 60 + gv * 18;
+      const push = motionFX.enabled ? 1 + gv * 0.8 : 0.12;
+      const pushX = Math.min(width, height) * 0.28;
+      const pushY = Math.min(width, height) * 0.18;
+      const cxp = width / 2 - motionFX.x * pushX * push;
+      const cyp = height / 2 + motionFX.y * pushY * push;
+      const base = Math.min(width, height) * 0.18;
+      const breathe = 1 + Math.sin(t * 0.8) * 0.04;
+      const radius = base * breathe * (1 + gv * 0.34 + motionFX.shake * 0.16);
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.globalCompositeOperation = 'lighter';
+
+      let gradient = ctx.createRadialGradient(cxp, cyp, 0, cxp, cyp, Math.max(width, height) * 0.55);
+      gradient.addColorStop(0, `hsla(${hue}, ${sat}%, ${lit + 8}%, ${0.08 + gv * 0.08})`);
+      gradient.addColorStop(0.46, `hsla(${hue}, ${sat}%, ${lit}%, ${0.02 + gv * 0.04})`);
+      gradient.addColorStop(1, 'hsla(0, 0%, 0%, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      gradient = ctx.createRadialGradient(cxp, cyp, radius * 0.15, cxp, cyp, radius * 2.4);
+      gradient.addColorStop(0, `hsla(${hue}, ${sat}%, ${lit + 14}%, ${0.11 + gv * 0.15})`);
+      gradient.addColorStop(0.48, `hsla(${hue}, ${sat}%, ${lit + 4}%, ${0.04 + gv * 0.08})`);
+      gradient.addColorStop(1, 'hsla(0, 0%, 0%, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(cxp, cyp, radius * 2.45, 0, Math.PI * 2);
+      ctx.fill();
+
+      gradient = ctx.createRadialGradient(cxp, cyp, 0, cxp, cyp, radius * 1.02);
+      gradient.addColorStop(0, `hsla(${hue}, ${Math.max(0, sat - 12)}%, ${Math.min(92, lit + 18)}%, ${0.2 + gv * 0.18})`);
+      gradient.addColorStop(0.48, `hsla(${hue}, ${sat}%, ${lit + 6}%, ${0.08 + gv * 0.12})`);
+      gradient.addColorStop(1, 'hsla(0, 0%, 0%, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(cxp, cyp, radius * 1.05, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (!histSeeded) {
+        for (let i = 0; i < historyCount; i += 1) {
+          hx[i] = cxp;
+          hy[i] = cyp;
+        }
+        lx = cxp;
+        ly = cyp;
+        histSeeded = true;
+      }
+
+      lhead += Math.sin(t * 0.8 + 7.1) * 0.03 + motionFX.x * 0.01;
+      const speed = Math.min(width, height) * 0.016 * gv;
+      lvx = lvx * 0.85 + Math.cos(lhead) * speed * 0.15;
+      lvy = lvy * 0.85 + Math.sin(lhead) * speed * 0.15;
+      lvx += (cxp - lx) * 0.018;
+      lvy += (cyp - ly) * 0.018;
+      lx += lvx;
+      ly += lvy;
+      hidx = (hidx + 1) % historyCount;
+      hx[hidx] = lx;
+      hy[hidx] = ly;
+
+      const trail = 150;
+      for (let i = 0; i < particleCount; i += 1) {
+        const back = (fage[i] * trail) | 0;
+        const j = (hidx - back + historyCount) % historyCount;
+        const j2 = (j - 3 + historyCount) % historyCount;
+        let dx = hx[j] - hx[j2];
+        let dy = hy[j] - hy[j2];
+        const dl = Math.sqrt(dx * dx + dy * dy) || 1;
+        dx /= dl;
+        dy /= dl;
+        const cone = radius * (0.08 + fage[i] * 1.35);
+        const px = hx[j] + (-dy) * flat[i] * cone;
+        const py = hy[j] + dx * flat[i] * cone;
+        const twinkle = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(t * Math.PI * 2 / fper[i] + fph[i]));
+        ctx.fillStyle = `hsla(${hue}, ${sat + 10}%, ${lit + 16}%, ${(0.12 + gv * 0.34) * twinkle})`;
+        ctx.fillRect(px, py, dpr * fsz[i] * 1.45, dpr * fsz[i] * 1.45);
+      }
+
+      if (ts - lastRipple > 520) {
+        ripples.push({ r: radius * 0.9, a: 0.12 + gv * 0.08 });
+        lastRipple = ts;
+      }
+      for (let i = ripples.length - 1; i >= 0; i -= 1) {
+        const ripple = ripples[i];
+        ripple.r += dpr * (0.9 + gv * 2.1);
+        ripple.a *= 0.962;
+        if (ripple.a < 0.012) {
+          ripples.splice(i, 1);
+          continue;
+        }
+        ctx.strokeStyle = `hsla(${hue}, ${sat}%, ${lit + 8}%, ${ripple.a})`;
+        ctx.lineWidth = dpr * 0.72;
+        ctx.beginPath();
+        ctx.arc(cxp, cyp, ripple.r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+      requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+  });
+})();
+</script>
 <script type="text/x-dc" data-dc-script data-props="{
   &quot;$preview&quot;: { &quot;width&quot;: 390, &quot;height&quot;: 844 },
   &quot;startingCount&quot;: { &quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 12847, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 0, &quot;max&quot;: 999999 },

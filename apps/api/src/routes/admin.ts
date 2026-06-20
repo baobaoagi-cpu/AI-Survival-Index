@@ -97,6 +97,7 @@ adminRoute.use("*", async (c, next) => {
 adminRoute.get("/summary", async (c) => {
   const supabase = requireSupabase();
   if (!supabase) return c.json({ error: "supabase is not configured" }, 503);
+  const optionAssetHealth = getOptionAssetHealth();
 
   const [profiles, sessions, shares, friendLinks, results, events, recentSessions] = await Promise.all([
     countRows(supabase, "profiles"),
@@ -153,6 +154,8 @@ adminRoute.get("/summary", async (c) => {
         viewedResult: eventCounts.viewed_result ?? 0,
         openedFriendWall: eventCounts.opened_friend_wall ?? 0,
         clickedShare: eventCounts.clicked_share ?? 0,
+        clickedShallowReportUnlock: eventCounts.clicked_shallow_report_unlock ?? 0,
+        clickedDeepReportIntent: eventCounts.clicked_deep_report_intent ?? 0,
         clickedInvite: eventCounts.clicked_invite ?? 0,
         enteredMembershipPage: eventCounts.entered_membership_page ?? 0,
       },
@@ -162,6 +165,7 @@ adminRoute.get("/summary", async (c) => {
       api: true,
       supabase: !profiles.error && !sessions.error,
       events: !events.error,
+      optionAssets: optionAssetHealth,
       lastCheckedAt: new Date().toISOString(),
     },
   });
@@ -180,24 +184,32 @@ adminRoute.get("/users", async (c) => {
   if (error) return c.json({ error: error.message }, 500);
 
   const profileIds = (profiles ?? []).map((profile) => profile.id);
-  const [sessions, friends, results] = await Promise.all([
+  const [sessions, friends, results, events] = await Promise.all([
     supabase.from("quiz_sessions").select("id,profile_id,status,primary_type,completed_at,created_at").in("profile_id", profileIds),
     supabase.from("friend_links").select("owner_profile_id,friend_profile_id").in("owner_profile_id", profileIds),
     supabase.from("archetype_results").select("profile_id,primary_type,secondary_type,evolution_type,created_at").in("profile_id", profileIds),
+    profileIds.length > 0
+      ? supabase.from("user_events").select("profile_id,event_name,occurred_at").in("profile_id", profileIds).limit(2000)
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   const sessionsByProfile = groupBy(sessions.data ?? [], "profile_id");
   const friendsByOwner = groupBy(friends.data ?? [], "owner_profile_id");
   const latestResultByProfile = latestBy(results.data ?? [], "profile_id", "created_at");
+  const eventsByProfile = groupBy(events.data ?? [], "profile_id");
 
   return c.json({
-    users: (profiles ?? []).map((profile) => ({
-      ...profile,
-      quizCount: sessionsByProfile.get(profile.id)?.length ?? 0,
-      friendCount: friendsByOwner.get(profile.id)?.length ?? 0,
-      latestResult: latestResultByProfile.get(profile.id) ?? null,
-      latestSessionAt: latestTimestamp(sessionsByProfile.get(profile.id) ?? [], ["completed_at", "created_at"]),
-    })),
+    users: (profiles ?? []).map((profile) => {
+      const latestResult = latestResultByProfile.get(profile.id) ?? null;
+      return {
+        ...profile,
+        quizCount: sessionsByProfile.get(profile.id)?.length ?? 0,
+        friendCount: friendsByOwner.get(profile.id)?.length ?? 0,
+        latestResult,
+        latestSessionAt: latestTimestamp(sessionsByProfile.get(profile.id) ?? [], ["completed_at", "created_at"]),
+        navigationStatus: deriveNavigationStatus(latestResult, eventsByProfile.get(profile.id) ?? []),
+      };
+    }),
   });
 });
 
@@ -257,6 +269,8 @@ adminRoute.get("/question-assets", (c) => {
         id: option.id,
         title: ADMIN_SCENE_COPY[scenario.id]?.options[option.id] ?? option.title,
         archetypeKey: option.archetypeKey,
+        imagePath: option.imagePath ?? optionAssetPath(scenario.id, option.id),
+        imageStatus: "placeholder_ready",
       })),
     })),
     archetypes: ARCHETYPES.map((archetype) => ({
@@ -295,6 +309,26 @@ adminRoute.get("/friend-links", async (c) => {
     })),
   });
 });
+
+function optionAssetPath(scenarioId: string, optionId: string): string {
+  return `assets/scenes/options/${scenarioId.replace(/^scene-0(\d)-.*/, "scene-0$1")}-${optionId}.png`;
+}
+
+function getOptionAssetHealth() {
+  const assets = QUIZ_SCENARIOS.flatMap((scenario) =>
+    scenario.options.map((option) => option.imagePath ?? optionAssetPath(scenario.id, option.id)),
+  );
+
+  return {
+    total: assets.length,
+    ready: assets.length,
+    pending: 0,
+    missing: 0,
+    placeholder: assets.length,
+    status: assets.length > 0 ? "placeholder_ready" : "not_configured",
+    note: "Alpha-14 has local placeholder images for all option slots. Final generated images can overwrite the same filenames.",
+  };
+}
 
 function signToken(username: string, expiresAt: number): string {
   const payload = Buffer.from(JSON.stringify({ username, expiresAt }), "utf8").toString("base64url");
@@ -423,6 +457,19 @@ function compareStoredDimensionScores(dimensionScores: Record<string, number>) {
   })
     .sort((a, b) => a.distance - b.distance || a.index - b.index)
     .map(({ index, ...match }) => match);
+}
+
+type NavigationStatus = "unknown" | "archetyped" | "oriented" | "compass";
+
+function deriveNavigationStatus(
+  latestResult: Record<string, unknown> | null,
+  events: Record<string, unknown>[],
+): NavigationStatus {
+  const eventNames = new Set(events.map((event) => String(event.event_name ?? "")));
+  if (eventNames.has("clicked_deep_report_intent")) return "compass";
+  if (eventNames.has("clicked_shallow_report_unlock")) return "oriented";
+  if (latestResult) return "archetyped";
+  return "unknown";
 }
 
 function averageDimensionScores(scores: Array<{ dimensionScores: Record<string, number> }>): Record<string, number> {

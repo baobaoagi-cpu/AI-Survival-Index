@@ -1,102 +1,54 @@
-const { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } = require("node:fs");
-const { dirname, join } = require("node:path");
+const { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } = require('node:fs');
+const { dirname, join } = require('node:path');
 
 const root = process.cwd();
-const outDir = join(root, "dist-alpha");
-const apiBaseUrl = process.env.AI_SURVIVAL_API_BASE_URL || "https://ai-survivalapi-production.up.railway.app";
+const outDir = join(root, 'dist-alpha');
+const apiBaseUrl = process.env.AI_SURVIVAL_API_BASE_URL || 'https://ai-survivalapi-production.up.railway.app';
+const htmlFiles = readdirSync(root)
+  .filter((file) => file.endsWith('.dc.html'))
+  .sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+const staticFiles = ['support.js','alpha-app.css','tracking.js','line-liff.js','manifest.webmanifest','sw.js','.thumbnail','data/archetypes.js','data/state-modifiers.js','data/zodiac-modifiers.js','assets/pwa/icon.svg','assets/archetypes/.gitkeep','assets/archetypes/archetype-crests-preview.png','assets/archetypes/builder.png','assets/archetypes/craftsman.png','assets/archetypes/explorer.png','assets/archetypes/guardian.png','assets/archetypes/inventor.png','assets/archetypes/manifest.json','assets/archetypes/mentor.png','assets/archetypes/navigator.png','assets/archetypes/README.md','assets/archetypes/strategist.png','assets/archetypes/trader.png','assets/placeholders/.gitkeep','assets/scenes/.gitkeep','assets/scenes/options/manifest.json','assets/scenes/options/scene-01-a.png','assets/scenes/options/scene-01-b.png','assets/scenes/options/scene-01-c.png','assets/scenes/options/scene-02-a.png','assets/scenes/options/scene-02-b.png','assets/scenes/options/scene-02-c.png','assets/scenes/options/scene-03-a.png','assets/scenes/options/scene-03-b.png','assets/scenes/options/scene-03-c.png','assets/scenes/options/scene-04-a.png','assets/scenes/options/scene-04-b.png','assets/scenes/options/scene-04-c.png','assets/scenes/options/scene-05-a.png','assets/scenes/options/scene-05-b.png','assets/scenes/options/scene-05-c.png','assets/scenes/options/scene-06-a.png','assets/scenes/options/scene-06-b.png','assets/scenes/options/scene-06-c.png','assets/share-cards/.gitkeep'];
+const liffId = process.env.AI_SURVIVAL_LIFF_ID || '';
+const requireLineLogin = process.env.AI_SURVIVAL_REQUIRE_LINE_LOGIN === 'true';
 
-const htmlFiles = [
-  "AI時代生存指數.dc.html",
-  "AI原型探索遊戲.dc.html",
-  "AI原型演化結果.dc.html",
-  "我的AI朋友圈.dc.html",
-  "未來導航.dc.html",
-];
-
-const staticFiles = [
-  "support.js",
-  "alpha-app.css",
-  "tracking.js",
-  "manifest.webmanifest",
-  "sw.js",
-  ".thumbnail",
-  "data/archetypes.js",
-  "assets/pwa/icon.svg",
-  "assets/archetypes/.gitkeep",
-  "assets/archetypes/archetype-crests-preview.png",
-  "assets/archetypes/builder.png",
-  "assets/archetypes/craftsman.png",
-  "assets/archetypes/explorer.png",
-  "assets/archetypes/guardian.png",
-  "assets/archetypes/inventor.png",
-  "assets/archetypes/manifest.json",
-  "assets/archetypes/mentor.png",
-  "assets/archetypes/navigator.png",
-  "assets/archetypes/README.md",
-  "assets/archetypes/strategist.png",
-  "assets/archetypes/trader.png",
-  "assets/placeholders/.gitkeep",
-  "assets/scenes/.gitkeep",
-  "assets/share-cards/.gitkeep",
-];
-
-rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
+for (const entry of readdirSync(outDir)) {
+  rmSync(join(outDir, entry), { recursive: true, force: true });
+}
 
 for (const file of htmlFiles) {
-  const sourcePath = join(root, file);
-  const targetPath = join(outDir, file);
-  const source = readFileSync(sourcePath, "utf8");
-  const withConfig = source.includes("runtime-config.js")
+  const source = readFileSync(join(root, file), 'utf8');
+  const withConfig = source.includes('runtime-config.js')
     ? source
     : source.replace(
         '<script src="./data/archetypes.js"></script>',
-        '<script src="./runtime-config.js"></script>\n<script src="./tracking.js"></script>\n<script src="./data/archetypes.js"></script>',
+        '<script src="./runtime-config.js"></script>\n<script src="./line-liff.js"></script>\n<script src="./tracking.js"></script>\n<script src="./data/archetypes.js"></script>',
       );
-  writeFileSync(targetPath, injectPwaTags(withConfig), "utf8");
+  writeFileSync(join(outDir, file), injectPwaTags(withConfig), 'utf8');
 }
 
 for (const file of staticFiles) {
-  const sourcePath = join(root, file);
-  if (existsSync(sourcePath)) {
-    copyFile(file, file);
-  }
+  copyFile(file);
 }
 
 writeFileSync(
-  join(outDir, "runtime-config.js"),
-  `window.AI_SURVIVAL_API_BASE_URL = ${JSON.stringify(apiBaseUrl)};\n`,
-  "utf8",
+  join(outDir, 'runtime-config.js'),
+  [
+    `window.AI_SURVIVAL_API_BASE_URL = ${JSON.stringify(apiBaseUrl)};`,
+    `window.AI_SURVIVAL_LIFF_ID = ${JSON.stringify(liffId)};`,
+    `window.AI_SURVIVAL_REQUIRE_LINE_LOGIN = ${JSON.stringify(requireLineLogin)};`,
+    '',
+  ].join('\n'),
+  'utf8',
 );
-
 writeFileSync(
-  join(outDir, "index.html"),
-  injectPwaTags(`<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI 時代生存指數 Alpha</title>
-  <meta http-equiv="refresh" content="0; url=./AI時代生存指數.dc.html">
-</head>
-<body>
-  <a href="./AI時代生存指數.dc.html">進入 AI 時代生存指數 Alpha</a>
-</body>
-</html>
-`),
-  "utf8",
+  join(outDir, 'index.html'),
+  injectPwaTags(`<!doctype html>\n<html lang="zh-Hant">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>AI Survival Index Alpha</title>\n  <meta http-equiv="refresh" content="0; url=./AI時代生存指數.dc.html">\n</head>\n<body>\n  <a href="./AI時代生存指數.dc.html">Enter AI Survival Index Alpha</a>\n</body>\n</html>\n`),
+  'utf8',
 );
+writeFileSync(join(outDir, '_headers'), `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
 
-writeFileSync(
-  join(outDir, "_headers"),
-  `/*
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: strict-origin-when-cross-origin
-`,
-  "utf8",
-);
-
-console.info("Alpha Pages bundle ready: dist-alpha");
+console.info('Alpha Pages bundle ready: dist-alpha');
 console.info(`API base URL: ${apiBaseUrl}`);
 
 function copyFile(sourceRelative, targetRelative = sourceRelative) {
@@ -108,16 +60,16 @@ function copyFile(sourceRelative, targetRelative = sourceRelative) {
 }
 
 function injectPwaTags(html) {
-  if (html.includes("manifest.webmanifest")) return html;
+  if (html.includes('manifest.webmanifest')) return html;
   return html.replace(
-    "</head>",
+    '</head>',
     [
       '  <meta name="theme-color" content="#070510">',
       '  <link rel="manifest" href="./manifest.webmanifest">',
       '  <link rel="icon" href="./assets/pwa/icon.svg" type="image/svg+xml">',
       '  <link rel="apple-touch-icon" href="./assets/pwa/icon.svg">',
       '  <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));</script>',
-      "</head>",
-    ].join("\n"),
+      '</head>',
+    ].join('\n'),
   );
 }

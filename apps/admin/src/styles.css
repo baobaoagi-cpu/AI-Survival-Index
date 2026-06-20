@@ -259,6 +259,48 @@ code {
   font-size: 28px;
 }
 
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.health-card {
+  min-height: 78px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.health-card span {
+  display: block;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+}
+
+.health-card strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 17px;
+}
+
+.health-card.ok {
+  border-color: rgba(88, 217, 201, 0.3);
+  background: rgba(88, 217, 201, 0.08);
+}
+
+.health-card.warn {
+  border-color: rgba(216, 180, 107, 0.34);
+  background: rgba(216, 180, 107, 0.09);
+}
+
+.health-card.bad {
+  border-color: rgba(255, 92, 128, 0.34);
+  background: rgba(255, 92, 128, 0.1);
+}
+
 .panel {
   border-radius: 22px;
   padding: 18px;
@@ -361,7 +403,7 @@ code {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+  min-width: 860px;
 }
 
 th,
@@ -414,6 +456,30 @@ td:nth-child(2) {
   font-size: 12px;
   font-weight: 800;
   background: rgba(216, 180, 107, 0.1);
+}
+
+.pill.nav-compass {
+  color: #f7dfaa;
+  border-color: rgba(216, 180, 107, 0.52);
+  background: rgba(216, 180, 107, 0.16);
+}
+
+.pill.nav-oriented {
+  color: #bff7f0;
+  border-color: rgba(88, 217, 201, 0.42);
+  background: rgba(88, 217, 201, 0.12);
+}
+
+.pill.nav-archetyped {
+  color: #d8c8ff;
+  border-color: rgba(169, 130, 255, 0.42);
+  background: rgba(169, 130, 255, 0.12);
+}
+
+.pill.nav-unknown {
+  color: rgba(255, 255, 255, 0.62);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .record-list,
@@ -538,6 +604,35 @@ td:nth-child(2) {
   gap: 8px;
 }
 
+.option-asset {
+  display: grid;
+  gap: 5px;
+  min-width: min(100%, 260px);
+  border-radius: 14px !important;
+}
+
+.option-asset b {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.option-asset small {
+  max-width: 238px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.46);
+}
+
+.option-asset em {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: #f7dfaa;
+  font-style: normal;
+  font-size: 10px;
+  background: rgba(216, 180, 107, 0.12);
+}
+
 @media (max-width: 1080px) {
   .admin-shell {
     grid-template-columns: 1fr;
@@ -559,6 +654,10 @@ td:nth-child(2) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .health-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .funnel-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -577,6 +676,7 @@ td:nth-child(2) {
   }
 
   .metric-grid,
+  .health-grid,
   .funnel-grid,
   .card-grid {
     grid-template-columns: 1fr;

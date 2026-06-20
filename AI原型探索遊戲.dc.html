@@ -27,6 +27,16 @@
   @keyframes crestLock { 0%{ opacity:0; transform:scale(0.72) rotate(-4deg); filter:blur(8px) } 58%{ opacity:1; transform:scale(1.04) rotate(0deg); filter:blur(0) } 100%{ opacity:1; transform:scale(1) rotate(0deg); filter:blur(0) } }
   @keyframes crestHalo { 0%{ transform:rotate(0deg) scale(0.96); opacity:0.25 } 50%{ opacity:0.78 } 100%{ transform:rotate(360deg) scale(1.02); opacity:0.35 } }
   @keyframes lockText { 0%{ opacity:0; transform:translateY(8px) } 100%{ opacity:1; transform:translateY(0) } }
+  @keyframes alphaPageIn { 0%{ opacity:0; transform:translateX(-34px); filter:blur(6px) } 100%{ opacity:1; transform:translateX(0); filter:blur(0) } }
+  @keyframes alphaPageOutRight { 0%{ opacity:1; transform:translateX(0); filter:blur(0) } 100%{ opacity:0; transform:translateX(58px); filter:blur(7px) } }
+  @keyframes alphaTitleReveal { 0%{ opacity:0; transform:translateY(12px); filter:blur(9px) } 55%{ opacity:0.55; filter:blur(3px) } 100%{ opacity:1; transform:translateY(0); filter:blur(0) } }
+  @keyframes alphaOptionReveal { 0%{ opacity:0; transform:translateY(22px) scale(0.985); filter:blur(7px) } 100%{ opacity:1; transform:translateY(0) scale(1); filter:blur(0) } }
+  @keyframes alphaSelectedGlow { 0%{ transform:translateX(0) scale(1) } 22%{ transform:translateX(2px) scale(0.992) } 42%{ transform:translateX(-3px) scale(1.012) } 62%{ transform:translateX(2px) scale(1.006) } 100%{ transform:translateX(0) scale(1) } }
+  .alpha-question-page { height:100%; min-height:0; display:flex; flex-direction:column; animation:alphaPageIn 0.46s cubic-bezier(.2,.82,.2,1) both; will-change:transform, opacity, filter; }
+  .alpha-question-page.alpha-page-out { animation:alphaPageOutRight 0.56s cubic-bezier(.22,.72,.18,1) both; pointer-events:none; }
+  .alpha-title-reveal { opacity:0; animation:alphaTitleReveal 0.72s cubic-bezier(.18,.9,.22,1) both; }
+  .alpha-option-card { opacity:0; animation:alphaOptionReveal 0.62s cubic-bezier(.18,.9,.22,1) both; will-change:transform, opacity, filter; }
+  .alpha-option-selected { border-color:rgba(255,255,255,0.42) !important; box-shadow:0 0 0 1px rgba(255,255,255,0.12), 0 0 34px rgba(216,180,107,0.34), 0 20px 58px rgba(0,0,0,0.38) !important; animation:alphaSelectedGlow 0.48s cubic-bezier(.25,.8,.22,1) both !important; }
 </style>
 </helmet>
 
@@ -261,6 +271,23 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     });
   }
 
+  function sceneIdForStep(stepIndex) {
+    return scenarioIds[Math.max(0, Math.min(scenarioIds.length - 1, stepIndex))];
+  }
+
+  function optionImagePath(sceneId, optionId) {
+    const shortSceneId = String(sceneId || '').replace(/^scene-0(\d)-.*$/, 'scene-0$1');
+    return './assets/scenes/options/' + shortSceneId + '-' + optionId + '.png';
+  }
+
+  function getOptionMeta(sceneId, optionId) {
+    const entry = optionBible[sceneId + ':' + optionId] || {};
+    return {
+      ...entry,
+      imagePath: entry.imagePath || optionImagePath(sceneId, optionId),
+    };
+  }
+
   function emptyDimensionScores() {
     return Object.fromEntries(dimensionKeys.map((key) => [key, 0]));
   }
@@ -331,6 +358,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
         'Content-Type': 'application/json',
         'X-Line-User-Id': localLineUserId(),
         'X-Line-Display-Name': localStorage.getItem('AI_SURVIVAL_LINE_DISPLAY_NAME') || 'Local Alpha User',
+        'X-Line-Picture-Url': localStorage.getItem('AI_SURVIVAL_LINE_PICTURE_URL') || '',
       },
       body: JSON.stringify({ answers: toApiAnswers(uiAnswers, scenarios) }),
     });
@@ -389,7 +417,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     return payload;
   }
 
-  return { score, saveAlphaResult, toApiAnswers, apiBase, calculateLocalResult };
+  return { score, saveAlphaResult, toApiAnswers, apiBase, calculateLocalResult, sceneIdForStep, optionImagePath, getOptionMeta };
 })();
 </script>
 <script>
@@ -415,7 +443,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
   ];
   const stage = document.getElementById('fallback-quiz-stage');
   const makeOptionOrders = () => scenarios.map(() => shuffle(['a', 'b', 'c']));
-  const state = { step: 0, tally: {}, answers: [], optionOrders: makeOptionOrders() };
+  const state = { step: 0, tally: {}, answers: [], optionOrders: makeOptionOrders(), locked: false };
   const tint = (key, alpha = 1) => `oklch(0.78 0.16 ${arch[key].hue} / ${alpha})`;
   const crestPath = (key) => arch[key].imagePaths?.portrait || `./assets/archetypes/${key}.png`;
   const escapeHtml = (text) => String(text || '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
@@ -488,68 +516,118 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     const optionOrder = state.optionOrders[state.step] || ['a', 'b', 'c'];
     const pct = Math.round((state.step / (scenarios.length - 1)) * 100);
     stage.innerHTML = `
+      <div class="alpha-question-page">
       <div style="position:relative; height:2px; border-radius:2px; background:rgba(255,255,255,0.13); overflow:hidden;">
         <div style="width:${pct}%; height:100%; border-radius:2px; background:linear-gradient(90deg,#64c8ff,#d56bff); box-shadow:0 0 12px rgba(170,110,255,0.7);"></div>
       </div>
-      <div style="text-align:center; padding:26px 8px 16px;">
-        <div style="font-family:Arial,sans-serif; font-size:12px; letter-spacing:0.16em; color:#cba6ff; margin-bottom:14px;">${escapeHtml(sc.chTitle)}</div>
-        <div style="font-size:22px; font-weight:900; line-height:1.45; color:rgba(255,255,255,0.94);">${escapeHtml(sc.line)}</div>
+      <div style="padding:20px 0 12px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;">
+          <div style="font-family:Arial,sans-serif; font-size:12px; letter-spacing:0.18em; color:#cba6ff;">QUESTION ${state.step + 1} / ${scenarios.length}</div>
+          <div style="font-size:12px; color:rgba(255,255,255,0.48);">三選一</div>
+        </div>
+        <div class="alpha-title-reveal" style="position:relative; border-radius:24px; border:1px solid rgba(255,255,255,0.13); background:linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.035)); padding:18px 18px 20px; box-shadow:0 18px 54px rgba(0,0,0,0.22); overflow:hidden;">
+          <div style="position:absolute; inset:auto -30px -70px auto; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle, rgba(118,223,211,0.18), transparent 66%);"></div>
+          <div style="position:relative; display:inline-flex; align-items:center; gap:8px; padding:6px 11px; border-radius:999px; border:1px solid rgba(203,166,255,0.34); background:rgba(203,166,255,0.08); font-size:12px; font-weight:900; color:#d8c4ff;">情境題 · ${escapeHtml(sc.chTitle)}</div>
+          <div style="position:relative; margin-top:13px; font-size:23px; font-weight:950; line-height:1.42; color:rgba(255,255,255,0.96); letter-spacing:0;">${escapeHtml(sc.line)}</div>
+          <div style="position:relative; margin-top:12px; font-size:13px; line-height:1.55; color:rgba(255,255,255,0.58);">先看情境，再選一個最像你直覺反應的答案。</div>
+        </div>
       </div>
-      <div style="flex:1; min-height:0; display:flex; flex-direction:column; gap:10px; padding-top:6px;">
-        ${optionOrder.map((optionId) => renderOption(sc[optionId], optionId)).join('')}
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:2px 2px 10px;">
+        <div>
+          <div style="font-size:19px; font-weight:950; color:#fff;">你第一個反應是？</div>
+          <div style="margin-top:3px; font-size:12px; color:rgba(255,255,255,0.48);">請從下面三張卡片選一個</div>
+        </div>
+        <div style="display:flex; gap:5px; flex:0 0 auto;">
+          <span style="${choiceDotStyle()}">A</span><span style="${choiceDotStyle()}">B</span><span style="${choiceDotStyle()}">C</span>
+        </div>
+      </div>
+      <div style="flex:1; min-height:0; display:flex; flex-direction:column; gap:10px;">
+        ${optionOrder.map((optionId, index) => renderOption(sc[optionId], optionId, index)).join('')}
+      </div>
       </div>
     `;
     stage.querySelectorAll('[data-pick]').forEach((btn) => {
-      btn.addEventListener('click', () => pick(btn.getAttribute('data-pick')));
+      btn.addEventListener('click', () => pick(btn.getAttribute('data-pick'), btn));
     });
   }
 
-  function renderOption(option, optionId) {
+  function choiceDotStyle() {
+    return 'width:24px; height:24px; border-radius:50%; display:grid; place-items:center; border:1px solid rgba(255,255,255,0.22); color:rgba(255,255,255,0.7); font-family:Arial,sans-serif; font-size:11px; font-weight:900;';
+  }
+
+  function renderOption(option, optionId, index) {
     const a = arch[option.key];
+    const choiceLabel = ['A', 'B', 'C'][index] || optionId.toUpperCase();
+    const sceneId = window.AI_SURVIVAL_QUIZ_API.sceneIdForStep(state.step);
+    const optionMeta = window.AI_SURVIVAL_QUIZ_API.getOptionMeta(sceneId, optionId);
+    const imagePath = option.imagePath || optionMeta.imagePath;
     return `
-      <button data-pick="${option.key}" data-option-id="${optionId}" style="position:relative; flex:1; min-height:0; width:100%; border-radius:22px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:#0c0a18; cursor:pointer; padding:16px; font-family:inherit; color:#fff; text-align:left;">
+      <button class="alpha-option-card" data-pick="${option.key}" data-option-id="${optionId}" style="animation-delay:${0.18 + index * 0.12}s; position:relative; flex:1; min-height:0; width:100%; border-radius:22px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:#0c0a18; cursor:pointer; padding:13px 14px; font-family:inherit; color:#fff; text-align:left;">
         <div style="position:absolute; inset:0; background:radial-gradient(90% 80% at 70% 10%, ${tint(option.key, 0.42)}, transparent 62%);"></div>
-        <div style="position:relative; height:36%; border-radius:16px; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-family:Arial,sans-serif; font-size:32px; font-weight:900; color:${tint(option.key, 1)}; background:linear-gradient(to top, rgba(7,5,16,0.7), rgba(7,5,16,0.12));">${escapeHtml(a.symbol)}</div>
-        <div style="position:relative; display:flex; align-items:center; justify-content:space-between; margin-top:12px; gap:12px;">
-          <div>
-            <span style="display:inline-flex; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:800; color:${tint(option.key, 1)}; border:1px solid ${tint(option.key, 0.55)}; background:rgba(255,255,255,0.04);">${escapeHtml(option.mood)}</span>
-            <div style="font-size:18px; font-weight:900; line-height:1.32; margin-top:8px;">${escapeHtml(option.title)}</div>
+        <div style="position:relative; display:grid; grid-template-columns:78px minmax(0, 1fr); gap:13px; align-items:stretch; height:100%;">
+          <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+            <div style="width:34px; height:34px; border-radius:12px; display:grid; place-items:center; font-family:Arial,sans-serif; font-size:15px; font-weight:950; color:#050409; background:${tint(option.key, 1)}; box-shadow:0 0 18px ${tint(option.key, 0.45)};">${choiceLabel}</div>
+            <div style="position:relative; flex:1; min-height:0; width:78px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; display:flex; align-items:center; justify-content:center; padding:0; background:linear-gradient(to top, rgba(7,5,16,0.78), rgba(7,5,16,0.12)), radial-gradient(70% 70% at 50% 30%, ${tint(option.key, 0.34)}, transparent 72%);">
+              <img src="${escapeHtml(imagePath)}" alt="${escapeHtml(choiceLabel + ' ' + option.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.dataset.missing='true';" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;">
+              <span style="position:relative; z-index:1; padding:0 7px; font-family:'Noto Sans TC','Microsoft JhengHei',Arial,sans-serif; font-size:18px; line-height:1.05; letter-spacing:0; text-align:center; font-weight:950; color:${tint(option.key, 1)}; text-shadow:0 0 18px rgba(0,0,0,0.62);">${escapeHtml(a.symbol)}</span>
+            </div>
           </div>
-          <span style="font-size:22px; color:${tint(option.key, 1)};">→</span>
+          <div style="min-width:0; display:flex; flex-direction:column; justify-content:space-between; gap:8px;">
+            <div>
+              <span style="display:inline-flex; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:900; color:${tint(option.key, 1)}; border:1px solid ${tint(option.key, 0.55)}; background:rgba(255,255,255,0.04);">選項 ${choiceLabel} · ${escapeHtml(option.mood)}</span>
+              <div style="font-size:18px; font-weight:950; line-height:1.32; margin-top:9px;">${escapeHtml(option.title)}</div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px; color:${tint(option.key, 1)}; font-size:13px; font-weight:900;">
+              <span>選這個</span><span style="font-size:18px;">→</span>
+            </div>
+          </div>
         </div>
       </button>
     `;
   }
 
-  function pick(key) {
+  function pick(key, button) {
+    if (state.locked) return;
+    state.locked = true;
+    if (button) button.classList.add('alpha-option-selected');
+    const page = stage.querySelector('.alpha-question-page');
+    if (page) setTimeout(() => page.classList.add('alpha-page-out'), 210);
     const sc = scenarios[state.step];
     const option = [sc.a, sc.b, sc.c].find((item) => item.key === key) || sc.a;
     state.tally[key] = (state.tally[key] || 0) + 1;
     const optionId = ['a', 'b', 'c'].find((id) => sc[id]?.key === key) || 'a';
+    const sceneId = window.AI_SURVIVAL_QUIZ_API.sceneIdForStep(state.step);
+    const optionMeta = window.AI_SURVIVAL_QUIZ_API.getOptionMeta(sceneId, optionId);
+    const displayIndex = (state.optionOrders[state.step] || ['a', 'b', 'c']).indexOf(optionId) + 1;
     state.answers.push({
       step: state.step + 1,
       scenarioId: window.AI_SURVIVAL_QUIZ_API.toApiAnswers([{ step: state.step + 1, optionId }], scenarios)[0].scenarioId,
       optionId,
+      displayIndex,
       chapter: sc.chapter,
       question: sc.line,
       selectedKey: key,
       selectedType: arch[key].name,
       mood: option.mood,
       title: option.title,
+      imagePath: optionMeta.imagePath,
     });
     if (window.AI_SURVIVAL_TRACK) {
       window.AI_SURVIVAL_TRACK.track('answered_question', {
         scenarioId: state.answers[state.answers.length - 1].scenarioId,
         optionId,
-        metadata: { step: state.step + 1, selectedKey: key, selectedType: arch[key].name },
+        metadata: { step: state.step + 1, displayIndex, selectedKey: key, selectedType: arch[key].name, imagePath: optionMeta.imagePath, dimensionEffect: optionMeta.dimensionEffect },
       });
     }
-    if (state.step < scenarios.length - 1) {
-      state.step += 1;
-      renderQuestion();
-      return;
-    }
-    finishQuiz();
+    setTimeout(() => {
+      state.locked = false;
+      if (state.step < scenarios.length - 1) {
+        state.step += 1;
+        renderQuestion();
+        return;
+      }
+      finishQuiz();
+    }, 680);
   }
 
   function renderLock(key, persisted) {

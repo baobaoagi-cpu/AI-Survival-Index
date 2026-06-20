@@ -1,0 +1,30 @@
+{
+  "version": "alpha-14",
+  "purpose": "Quiz option illustration slots. Final generated images should overwrite these filenames without changing paths.",
+  "recommendedSize": {
+    "width": 512,
+    "height": 512,
+    "unit": "px",
+    "note": "Displayed as a cropped option-card thumbnail in the 390px mobile quiz UI. Keep the main visual centered and readable at small size."
+  },
+  "files": [
+    "scene-01-a.png",
+    "scene-01-b.png",
+    "scene-01-c.png",
+    "scene-02-a.png",
+    "scene-02-b.png",
+    "scene-02-c.png",
+    "scene-03-a.png",
+    "scene-03-b.png",
+    "scene-03-c.png",
+    "scene-04-a.png",
+    "scene-04-b.png",
+    "scene-04-c.png",
+    "scene-05-a.png",
+    "scene-05-b.png",
+    "scene-05-c.png",
+    "scene-06-a.png",
+    "scene-06-b.png",
+    "scene-06-c.png"
+  ]
+}

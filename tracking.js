@@ -32,6 +32,7 @@
         path: location.pathname,
         search: location.search,
         viewport: `${window.innerWidth}x${window.innerHeight}`,
+        lineLoginStatus: window.AI_SURVIVAL_LINE?.getStatus?.() || null,
         persisted: localStorage.getItem("quizPersisted"),
         primaryType: localStorage.getItem("primaryType"),
         secondaryType: localStorage.getItem("secondaryType"),

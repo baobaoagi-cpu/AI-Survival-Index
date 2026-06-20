@@ -15,6 +15,13 @@ AI 時代生存指數 Alpha product workspace.
 - `docs/archetype-bible-v1.md`: nine archetypes, dimension coordinates, growth routes, and visual identity rules.
 - `docs/archetype-mission-system-v1.md`: today, 7-day, 30-day, and 90-day mission design for each archetype.
 - `docs/option-image-prompt-bible.md`: 18 option image prompts for quiz choice illustrations.
+- `docs/alpha-09-fate-compass-system.md`: birthday data tiers, fate compass reports, paid deep report, and daily companion model.
+- `docs/product-roadmap-v1.md`: prioritized roadmap from closed beta to paid deep reports and subscription companion.
+- `docs/zodiac-state-result-bible-v1.md`: zodiac modifiers, current-state modifiers, and 324-result composition rules.
+- `docs/alpha-11-report-unlock-mvp.md`: shallow report share-unlock intent and deep report purchase-intent tracking.
+- `docs/alpha-12-social-compass-system.md`: social compass states for friend wall, admin monitoring, and paid-navigation readiness.
+- `docs/alpha-13-quiz-choice-clarity-ux.md`: quiz page clarity rules for question-vs-choice separation.
+- `docs/alpha-14-option-image-integration-and-funnel-health.md`: 18 quiz option image slots and Admin funnel health checks.
 
 ## Alpha-05 Quiz Engine
 
@@ -67,6 +74,62 @@ The Admin Dashboard now computes analytics from `quiz_answers`:
 
 These analytics use stored JSONB fields when available and fall back to answer-level
 calculation for older rows.
+
+## Alpha-11 Report Unlock MVP
+
+The result page now has two closed-beta conversion entrances:
+
+- `分享 2 位好友解鎖淺度報告`
+- `我想買深度報告`
+
+Both are intent-only actions. They do not collect payment and do not truly unlock report content yet.
+
+Tracked events:
+
+- `clicked_shallow_report_unlock`
+- `clicked_deep_report_intent`
+
+Admin Dashboard includes both events in the funnel.
+
+## Alpha-12 Social Compass MVP
+
+The friend wall now frames the social graph as a compass:
+
+- `unknown`: 迷霧中
+- `archetyped`: 星軌區
+- `oriented`: 已校準方向
+- `compass`: 指南針
+
+Admin `/admin/users` derives `navigationStatus` from existing quiz results and report-intent events. This is an Alpha proxy only; production paid status should come from membership or payment records.
+
+## Alpha-13 Quiz Choice Clarity UX
+
+The quiz page now separates:
+
+- question number
+- scenario card
+- explicit three-choice instruction
+- A / B / C choice cards with `選這個 →`
+
+This is a frontend-only UX pass. Scoring, API writes, and localStorage compatibility are unchanged.
+
+## Alpha-14 Option Image Integration And Funnel Health
+
+The quiz page now has a replaceable visual slot for all 18 answer options:
+
+- `assets/scenes/options/scene-01-a.png`
+- ...
+- `assets/scenes/options/scene-06-c.png`
+
+Placeholder PNGs are present so the local Alpha does not show broken images. Final generated images should overwrite the same filenames.
+
+Admin now shows:
+
+- API / Supabase / event tracking health
+- 18 option image configured status
+- option-level image paths in the question asset table
+
+Answer events also include `displayIndex`, `imagePath`, and `dimensionEffect`.
 
 ## Local Development
 

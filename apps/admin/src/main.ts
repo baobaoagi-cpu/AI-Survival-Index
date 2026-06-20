@@ -29,6 +29,13 @@ const DIMENSION_LABELS: Record<string, string> = {
 
 type TabKey = "dashboard" | "users" | "sessions" | "assets" | "friends";
 
+const NAVIGATION_STATUS_LABELS: Record<string, string> = {
+  unknown: "迷霧中",
+  archetyped: "星軌區",
+  oriented: "已校準方向",
+  compass: "指南針",
+};
+
 type AdminState = {
   token: string | null;
   tab: TabKey;
@@ -224,6 +231,8 @@ function dashboardTemplate(data: any = {}) {
   const similarityAverages = data.similarityAverages ?? {};
   const funnel = data.funnel ?? {};
   const funnelEvents = funnel.events ?? {};
+  const health = data.health ?? {};
+  const optionAssets = health.optionAssets ?? {};
   return `
     <section class="metric-grid">
       ${metric("用戶總數", totals.users)}
@@ -232,6 +241,12 @@ function dashboardTemplate(data: any = {}) {
       ${metric("好友關係", totals.friendLinks)}
       ${metric("分享事件", totals.shareEvents)}
       ${metric("行為事件", totals.userEvents)}
+    </section>
+    <section class="health-grid">
+      ${healthCard("API", health.api ? "正常" : "異常", health.api ? "ok" : "bad")}
+      ${healthCard("Supabase", health.supabase ? "可寫入" : "異常", health.supabase ? "ok" : "bad")}
+      ${healthCard("事件追蹤", health.events ? "啟用" : "未啟用", health.events ? "ok" : "warn")}
+      ${healthCard("18 張選項圖", `${optionAssets.ready ?? 0}/${optionAssets.total ?? 18} configured`, (optionAssets.pending ?? 0) > 0 ? "warn" : "ok")}
     </section>
     <section class="panel">
       <div class="panel-head"><h3>封測漏斗</h3><span>${funnel.available ? "user_events 已啟用" : "事件表尚未啟用"}</span></div>
@@ -244,6 +259,8 @@ function dashboardTemplate(data: any = {}) {
               ${funnelStep("看結果", funnelEvents.viewedResult)}
               ${funnelStep("好友圈", funnelEvents.openedFriendWall)}
               ${funnelStep("分享點擊", funnelEvents.clickedShare)}
+              ${funnelStep("淺度解鎖意圖", funnelEvents.clickedShallowReportUnlock)}
+              ${funnelStep("深度購買意圖", funnelEvents.clickedDeepReportIntent)}
             </div>`
           : `<div class="empty-state">正式 Supabase 需要先套用 <code>user_events</code> migration，之後這裡會顯示完整封測漏斗。</div>`
       }
@@ -292,13 +309,14 @@ function usersTemplate(data: any = {}) {
       <div class="panel-head"><h3>用戶清單</h3><span>${users.length} 筆</span></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>用戶</th><th>LINE ID</th><th>人格</th><th>測驗</th><th>朋友</th><th>最近活動</th></tr></thead>
+          <thead><tr><th>用戶</th><th>LINE ID</th><th>人格</th><th>方向狀態</th><th>測驗</th><th>朋友</th><th>最近活動</th></tr></thead>
           <tbody>
             ${users.map((user: any) => `
               <tr>
                 <td>${avatar(user.picture_url)}<strong>${escapeHtml(user.display_name || "未命名")}</strong></td>
                 <td><code>${escapeHtml(shortId(user.line_user_id))}</code></td>
                 <td>${typePill(user.latestResult?.primary_type)}</td>
+                <td>${navigationPill(user.navigationStatus)}</td>
                 <td>${user.quizCount ?? 0}</td>
                 <td>${user.friendCount ?? 0}</td>
                 <td>${formatDate(user.latestSessionAt || user.updated_at || user.created_at)}</td>
@@ -349,7 +367,13 @@ function assetsTemplate(data: any = {}) {
               <p>${escapeHtml(question.line || "")}</p>
               <code>${escapeHtml(question.imagePath)}</code>
               <div class="option-list">
-                ${(question.options ?? []).map((option: any) => `<span>${escapeHtml(option.id)} → ${labelType(option.archetypeKey)}</span>`).join("")}
+                ${(question.options ?? []).map((option: any) => `
+                  <span class="option-asset">
+                    <b>${escapeHtml(option.id)} · ${labelType(option.archetypeKey)}</b>
+                    <small>${escapeHtml(option.imagePath || "no image path")}</small>
+                    <em>${escapeHtml(option.imageStatus || "unknown")}</em>
+                  </span>
+                `).join("")}
               </div>
             </div>
           </article>
@@ -387,6 +411,10 @@ function metric(label: string, value: unknown) {
   return `<article class="metric"><span>${label}</span><strong>${value ?? 0}</strong></article>`;
 }
 
+function healthCard(label: string, value: string, status: "ok" | "warn" | "bad") {
+  return `<article class="health-card ${status}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`;
+}
+
 function funnelStep(label: string, value: unknown) {
   return `<article class="funnel-step"><span>${label}</span><strong>${value ?? 0}</strong></article>`;
 }
@@ -406,6 +434,12 @@ function avatar(src?: string | null) {
 
 function typePill(type?: string | null) {
   return type ? `<span class="pill">${labelType(type)}</span>` : `<span class="muted">未完成</span>`;
+}
+
+function navigationPill(status?: string | null) {
+  const key = status || "unknown";
+  const label = NAVIGATION_STATUS_LABELS[key] || key;
+  return `<span class="pill nav-${escapeHtml(key)}">${escapeHtml(label)}</span>`;
 }
 
 function labelType(type?: string | null) {
