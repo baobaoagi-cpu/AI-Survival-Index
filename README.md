@@ -10,6 +10,7 @@ AI 時代生存指數 Alpha product workspace.
 - `packages/shared`: archetype data, quiz scenarios, and scoring engine.
 - `supabase`: schema migration and remote bootstrap SQL.
 - `assets/archetypes`: locked crest assets.
+- `docs/product-advisory-board.md`: product, architecture, UX, analytics, and growth decision rules.
 
 ## Local Development
 
