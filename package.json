@@ -8,6 +8,7 @@
     "build": "pnpm --filter @ai-survival/shared build && pnpm --filter @ai-survival/api build && pnpm --filter @ai-survival/web build",
     "check": "pnpm --filter @ai-survival/shared build && pnpm -r check",
     "typecheck": "pnpm --filter @ai-survival/shared build && pnpm -r typecheck",
+    "build:alpha-pages": "node scripts/build-alpha-pages.cjs",
     "dev:web": "pnpm --filter @ai-survival/web dev",
     "dev:api": "pnpm --filter @ai-survival/api dev",
     "supabase": "supabase",

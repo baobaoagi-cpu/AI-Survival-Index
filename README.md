@@ -53,6 +53,30 @@ SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxx
 
 Railway supplies `PORT` automatically.
 
+## Cloudflare Pages Frontend Deploy
+
+Deploy the current playable Alpha HTML prototype to Cloudflare Pages.
+
+Recommended Pages settings:
+
+```text
+Type: Pages
+Repository: baobaoagi-cpu/AI-Survival-Index
+Production branch: main
+Root directory: /
+Build command: pnpm build:alpha-pages
+Build output directory: dist-alpha
+```
+
+Set this Cloudflare Pages build environment variable:
+
+```env
+AI_SURVIVAL_API_BASE_URL=https://ai-survivalapi-production.up.railway.app
+```
+
+After Cloudflare gives the Pages domain, add it to the Railway API `APP_ORIGIN`
+variable together with any existing origins.
+
 ## Supabase
 
 Remote bootstrap SQL:
