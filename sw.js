@@ -1,4 +1,4 @@
-const CACHE_NAME = "ai-survival-alpha-v1";
+const CACHE_NAME = "ai-survival-alpha-v2";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -37,9 +37,25 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  const isHtmlNavigation = request.mode === "navigate" || request.headers.get("accept")?.includes("text/html");
+  const isRuntimeConfig = url.pathname.endsWith("/runtime-config.js");
 
   event.respondWith(
-    caches.match(request).then((cached) => {
+    caches.match(request).then(async (cached) => {
+      if (isHtmlNavigation || isRuntimeConfig) {
+        try {
+          const response = await fetch(request);
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        } catch {
+          if (cached) return cached;
+          throw new Error("Network request failed and no cache is available");
+        }
+      }
+
       const network = fetch(request)
         .then((response) => {
           if (response.ok) {
