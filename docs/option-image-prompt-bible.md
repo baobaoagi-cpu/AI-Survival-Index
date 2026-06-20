@@ -2,6 +2,12 @@
 
 This document defines the 18 option images for the Alpha quiz.
 
+Priority note:
+
+This image bible is subordinate to `docs/option-bible-spec-v1.md`.
+Images must be generated from the personality dimension model and Option Bible,
+not the other way around.
+
 Use these prompts with ChatGPT image generation or another image model. Keep every image consistent with the same visual system.
 
 ## Global Style
