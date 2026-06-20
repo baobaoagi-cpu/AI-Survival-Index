@@ -1,30 +1,145 @@
 {
-  "version": "alpha-14",
-  "purpose": "Quiz option illustration slots. Final generated images should overwrite these filenames without changing paths.",
+  "version": "alpha-18-grounded-economy-psychology",
+  "purpose": "Quiz option illustrations with grounded, humorous, mass-market economic psychology cues.",
   "recommendedSize": {
     "width": 512,
     "height": 512,
     "unit": "px",
     "note": "Displayed as a cropped option-card thumbnail in the 390px mobile quiz UI. Keep the main visual centered and readable at small size."
   },
+  "style": [
+    "grounded everyday situations",
+    "funny but not childish",
+    "mass-market economic psychology",
+    "large readable iconography",
+    "AI/futuristic accent lines"
+  ],
   "files": [
-    "scene-01-a.png",
-    "scene-01-b.png",
-    "scene-01-c.png",
-    "scene-02-a.png",
-    "scene-02-b.png",
-    "scene-02-c.png",
-    "scene-03-a.png",
-    "scene-03-b.png",
-    "scene-03-c.png",
-    "scene-04-a.png",
-    "scene-04-b.png",
-    "scene-04-c.png",
-    "scene-05-a.png",
-    "scene-05-b.png",
-    "scene-05-c.png",
-    "scene-06-a.png",
-    "scene-06-b.png",
-    "scene-06-c.png"
+    {
+      "file": "scene-01-a.png",
+      "semanticName": "報告加料",
+      "scene": "AI 已把報告寫好了",
+      "option": "我想再加新點子",
+      "psychology": "加值心理"
+    },
+    {
+      "file": "scene-01-b.png",
+      "semanticName": "抓蟲檢查",
+      "scene": "AI 已把報告寫好了",
+      "option": "我先檢查細節",
+      "psychology": "怕出包"
+    },
+    {
+      "file": "scene-01-c.png",
+      "semanticName": "誰被影響",
+      "scene": "AI 已把報告寫好了",
+      "option": "我先想誰會受影響",
+      "psychology": "關係成本"
+    },
+    {
+      "file": "scene-02-a.png",
+      "semanticName": "帶頭試用",
+      "scene": "公司突然換成 AI 系統",
+      "option": "我帶大家先試用",
+      "psychology": "跟上隊伍"
+    },
+    {
+      "file": "scene-02-b.png",
+      "semanticName": "先讀規則",
+      "scene": "公司突然換成 AI 系統",
+      "option": "我先弄懂規則",
+      "psychology": "少踩雷"
+    },
+    {
+      "file": "scene-02-c.png",
+      "semanticName": "懶人流程",
+      "scene": "公司突然換成 AI 系統",
+      "option": "我做一份操作流程",
+      "psychology": "省力優先"
+    },
+    {
+      "file": "scene-03-a.png",
+      "semanticName": "試水溫",
+      "scene": "有人邀你做 AI 新專案",
+      "option": "先小試一把",
+      "psychology": "小賭怡情"
+    },
+    {
+      "file": "scene-03-b.png",
+      "semanticName": "怕虧試算",
+      "scene": "有人邀你做 AI 新專案",
+      "option": "先算成本風險",
+      "psychology": "損失厭惡"
+    },
+    {
+      "file": "scene-03-c.png",
+      "semanticName": "切小實驗",
+      "scene": "有人邀你做 AI 新專案",
+      "option": "改成小實驗",
+      "psychology": "低成本試錯"
+    },
+    {
+      "file": "scene-04-a.png",
+      "semanticName": "教會朋友",
+      "scene": "好友問：我會被AI取代嗎",
+      "option": "我教他用 AI 做事",
+      "psychology": "技能升級"
+    },
+    {
+      "file": "scene-04-b.png",
+      "semanticName": "飯碗穩住",
+      "scene": "好友問：我會被AI取代嗎",
+      "option": "我先陪他穩住",
+      "psychology": "飯碗安全感"
+    },
+    {
+      "file": "scene-04-c.png",
+      "semanticName": "三步路線",
+      "scene": "好友問：我會被AI取代嗎",
+      "option": "我幫他排下一步",
+      "psychology": "看見出口"
+    },
+    {
+      "file": "scene-05-a.png",
+      "semanticName": "新點子泡泡",
+      "scene": "你拿到一個全新專案",
+      "option": "做一個新點子",
+      "psychology": "差異化"
+    },
+    {
+      "file": "scene-05-b.png",
+      "semanticName": "先搭流程",
+      "scene": "你拿到一個全新專案",
+      "option": "先搭基本流程",
+      "psychology": "複利累積"
+    },
+    {
+      "file": "scene-05-c.png",
+      "semanticName": "誰會買單",
+      "scene": "你拿到一個全新專案",
+      "option": "先找誰真的需要",
+      "psychology": "需求驗證"
+    },
+    {
+      "file": "scene-06-a.png",
+      "semanticName": "勇敢開始",
+      "scene": "一年後回看今天",
+      "option": "我有勇敢開始",
+      "psychology": "後悔最小化"
+    },
+    {
+      "file": "scene-06-b.png",
+      "semanticName": "留下系統",
+      "scene": "一年後回看今天",
+      "option": "我留下可用系統",
+      "psychology": "資產感"
+    },
+    {
+      "file": "scene-06-c.png",
+      "semanticName": "幫到更多人",
+      "scene": "一年後回看今天",
+      "option": "我幫到更多人",
+      "psychology": "社會資本"
+    }
   ]
 }

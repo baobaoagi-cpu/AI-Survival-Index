@@ -37,6 +37,8 @@
   .alpha-title-reveal { opacity:0; animation:alphaTitleReveal 0.72s cubic-bezier(.18,.9,.22,1) both; }
   .alpha-option-card { opacity:0; animation:alphaOptionReveal 0.62s cubic-bezier(.18,.9,.22,1) both; will-change:transform, opacity, filter; }
   .alpha-option-selected { border-color:rgba(255,255,255,0.42) !important; box-shadow:0 0 0 1px rgba(255,255,255,0.12), 0 0 34px rgba(216,180,107,0.34), 0 20px 58px rgba(0,0,0,0.38) !important; animation:alphaSelectedGlow 0.48s cubic-bezier(.25,.8,.22,1) both !important; }
+  .option-image-fallback { display:none; }
+  [data-missing="true"] .option-image-fallback { display:block; }
 </style>
 </helmet>
 
@@ -569,7 +571,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
             <div style="width:34px; height:34px; border-radius:12px; display:grid; place-items:center; font-family:Arial,sans-serif; font-size:15px; font-weight:950; color:#050409; background:${tint(option.key, 1)}; box-shadow:0 0 18px ${tint(option.key, 0.45)};">${choiceLabel}</div>
             <div style="position:relative; flex:1; min-height:0; width:78px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; display:flex; align-items:center; justify-content:center; padding:0; background:linear-gradient(to top, rgba(7,5,16,0.78), rgba(7,5,16,0.12)), radial-gradient(70% 70% at 50% 30%, ${tint(option.key, 0.34)}, transparent 72%);">
               <img src="${escapeHtml(imagePath)}" alt="${escapeHtml(choiceLabel + ' ' + option.title)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.dataset.missing='true';" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;">
-              <span style="position:relative; z-index:1; padding:0 7px; font-family:'Noto Sans TC','Microsoft JhengHei',Arial,sans-serif; font-size:18px; line-height:1.05; letter-spacing:0; text-align:center; font-weight:950; color:${tint(option.key, 1)}; text-shadow:0 0 18px rgba(0,0,0,0.62);">${escapeHtml(a.symbol)}</span>
+              <span class="option-image-fallback" style="position:relative; z-index:1; padding:0 7px; font-family:'Noto Sans TC','Microsoft JhengHei',Arial,sans-serif; font-size:18px; line-height:1.05; letter-spacing:0; text-align:center; font-weight:950; color:${tint(option.key, 1)}; text-shadow:0 0 18px rgba(0,0,0,0.62);">${escapeHtml(a.symbol)}</span>
             </div>
           </div>
           <div style="min-width:0; display:flex; flex-direction:column; justify-content:space-between; gap:8px;">
