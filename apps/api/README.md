@@ -33,9 +33,13 @@ These headers are placeholders for the future LIFF token verification step. Do n
 
 Response includes the quiz result plus:
 
+- `dimensionScores`
+- `archetypeMatches`
 - `persisted`
 - `sessionId`
 - `profileId`
+
+`dimensionScores` and `archetypeMatches` are currently returned by the API but not yet persisted to dedicated database columns. The next migration should add `dimension_scores` and answer-level `dimension_effect` JSONB fields.
 
 ### `POST /line/webhook`
 

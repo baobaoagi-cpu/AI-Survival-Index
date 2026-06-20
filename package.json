@@ -6,6 +6,7 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "pnpm --filter @ai-survival/shared build && pnpm --filter @ai-survival/api build && pnpm --filter @ai-survival/web build && pnpm --filter @ai-survival/admin build",
+    "test": "pnpm --filter @ai-survival/api build && node scripts/check-alpha-05.cjs",
     "check": "pnpm --filter @ai-survival/shared build && pnpm -r check",
     "typecheck": "pnpm --filter @ai-survival/shared build && pnpm -r typecheck",
     "build:alpha-pages": "node scripts/build-alpha-pages.cjs",

@@ -26,6 +26,7 @@ export type Archetype = {
   colorHue: number;
   element: string;
   animal: string;
+  dimensionProfile: DimensionScores;
   imagePaths: {
     portrait: string;
     shareCard: string;
@@ -33,11 +34,20 @@ export type Archetype = {
   };
 };
 
+export type DimensionKey = "explore" | "action" | "risk" | "create" | "influence" | "build";
+
+export type DimensionScores = Record<DimensionKey, number>;
+
+export type DimensionEffect = Partial<Record<DimensionKey, number>>;
+
 export type QuizOption = {
   id: "a" | "b" | "c";
   mood: string;
   title: string;
   archetypeKey: ArchetypeKey;
+  dimensionEffect: DimensionEffect;
+  secondaryArchetype?: ArchetypeKey;
+  imagePath?: string;
 };
 
 export type QuizScenario = {
@@ -55,9 +65,24 @@ export type QuizAnswerInput = {
 
 export type ArchetypeScores = Record<ArchetypeKey, number>;
 
+export type ArchetypeMatch = {
+  key: ArchetypeKey;
+  name: string;
+  distance: number;
+  similarityScore: number;
+};
+
 export type QuizResult = {
-  answers: Array<QuizAnswerInput & { archetypeKey: ArchetypeKey }>;
+  answers: Array<
+    QuizAnswerInput & {
+      archetypeKey: ArchetypeKey;
+      secondaryArchetype?: ArchetypeKey;
+      dimensionEffect: DimensionEffect;
+    }
+  >;
   archetypeScores: ArchetypeScores;
+  dimensionScores: DimensionScores;
+  archetypeMatches: ArchetypeMatch[];
   primaryType: ArchetypeKey;
   secondaryType: ArchetypeKey;
   evolutionType: ArchetypeKey;

@@ -16,6 +16,37 @@ AI 時代生存指數 Alpha product workspace.
 - `docs/archetype-mission-system-v1.md`: today, 7-day, 30-day, and 90-day mission design for each archetype.
 - `docs/option-image-prompt-bible.md`: 18 option image prompts for quiz choice illustrations.
 
+## Alpha-05 Quiz Engine
+
+Quiz scoring now uses the six-dimension personality model:
+
+```text
+option
+-> dimension_effect
+-> dimensionScores
+-> compare with archetype dimensionProfile
+-> primaryType / secondaryType / evolutionType
+```
+
+The API and frontend still keep legacy compatibility fields:
+
+- `answers`
+- `archetypeScores`
+- `primaryType`
+- `secondaryType`
+- `evolutionType`
+
+New Alpha-05 fields:
+
+- `dimensionScores`
+- `archetypeMatches`
+
+Next database migration should add:
+
+- `quiz_sessions.dimension_scores jsonb`
+- `archetype_results.dimension_scores jsonb`
+- `quiz_answers.dimension_effect jsonb`
+
 ## Local Development
 
 ```bash

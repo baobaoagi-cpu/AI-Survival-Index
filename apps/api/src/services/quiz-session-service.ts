@@ -30,7 +30,7 @@ export class QuizPersistenceError extends Error {
 
 export async function createQuizSession(input: CreateQuizSessionInput): Promise<CreateQuizSessionResult> {
   const result = scoreQuiz(input.answers);
-  const supabase = input.supabase ?? createSupabaseAdmin();
+  const supabase = input.supabase === undefined ? createSupabaseAdmin() : input.supabase;
 
   if (!supabase) {
     return {

@@ -253,6 +253,8 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
       answers: uiAnswers,
       apiAnswers: serverResult?.answers || toApiAnswers(uiAnswers, scenarios || []),
       archetypeScores: serverResult?.archetypeScores || tally,
+      dimensionScores: serverResult?.dimensionScores || resolved.dimensionScores || null,
+      archetypeMatches: serverResult?.archetypeMatches || resolved.archetypeMatches || [],
       primaryType: serverResult?.primaryType || resolved.primaryType,
       secondaryType: serverResult?.secondaryType || resolved.secondaryType,
       evolutionType: serverResult?.evolutionType || resolved.evolutionType,
@@ -267,6 +269,8 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     localStorage.setItem('aiSurvivalAlphaResult', JSON.stringify(payload));
     localStorage.setItem('answers', JSON.stringify(payload.answers));
     localStorage.setItem('archetypeScores', JSON.stringify(payload.archetypeScores));
+    if (payload.dimensionScores) localStorage.setItem('dimensionScores', JSON.stringify(payload.dimensionScores));
+    localStorage.setItem('archetypeMatches', JSON.stringify(payload.archetypeMatches || []));
     localStorage.setItem('primaryType', payload.primaryType);
     localStorage.setItem('secondaryType', payload.secondaryType);
     localStorage.setItem('evolutionType', payload.evolutionType);
@@ -282,6 +286,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
           primaryType: payload.primaryType,
           secondaryType: payload.secondaryType,
           evolutionType: payload.evolutionType,
+          dimensionScores: payload.dimensionScores,
           apiError: payload.apiError,
         },
       });

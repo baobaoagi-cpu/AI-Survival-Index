@@ -18,6 +18,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 288,
     element: "風",
     animal: "隼",
+    dimensionProfile: {
+      explore: 95,
+      action: 82,
+      risk: 76,
+      create: 68,
+      influence: 46,
+      build: 38,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/explorer.png",
       shareCard: "/assets/share-cards/explorer.png",
@@ -41,6 +49,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 255,
     element: "金",
     animal: "獾",
+    dimensionProfile: {
+      explore: 42,
+      action: 58,
+      risk: 28,
+      create: 54,
+      influence: 32,
+      build: 86,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/craftsman.png",
       shareCard: "/assets/share-cards/craftsman.png",
@@ -64,6 +80,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 210,
     element: "水",
     animal: "鯨",
+    dimensionProfile: {
+      explore: 36,
+      action: 56,
+      risk: 24,
+      create: 42,
+      influence: 55,
+      build: 62,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/guardian.png",
       shareCard: "/assets/share-cards/guardian.png",
@@ -87,6 +111,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 170,
     element: "星",
     animal: "海豚",
+    dimensionProfile: {
+      explore: 72,
+      action: 78,
+      risk: 55,
+      create: 56,
+      influence: 88,
+      build: 66,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/navigator.png",
       shareCard: "/assets/share-cards/navigator.png",
@@ -110,6 +142,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 135,
     element: "木",
     animal: "狐",
+    dimensionProfile: {
+      explore: 58,
+      action: 42,
+      risk: 50,
+      create: 52,
+      influence: 68,
+      build: 70,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/strategist.png",
       shareCard: "/assets/share-cards/strategist.png",
@@ -133,6 +173,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 95,
     element: "雷",
     animal: "蜂鳥",
+    dimensionProfile: {
+      explore: 86,
+      action: 60,
+      risk: 72,
+      create: 96,
+      influence: 52,
+      build: 58,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/inventor.png",
       shareCard: "/assets/share-cards/inventor.png",
@@ -156,6 +204,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 55,
     element: "火",
     animal: "獵豹",
+    dimensionProfile: {
+      explore: 70,
+      action: 84,
+      risk: 90,
+      create: 54,
+      influence: 50,
+      build: 40,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/trader.png",
       shareCard: "/assets/share-cards/trader.png",
@@ -179,6 +235,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 28,
     element: "光",
     animal: "貓頭鷹",
+    dimensionProfile: {
+      explore: 56,
+      action: 58,
+      risk: 36,
+      create: 55,
+      influence: 90,
+      build: 62,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/mentor.png",
       shareCard: "/assets/share-cards/mentor.png",
@@ -202,6 +266,14 @@ export const ARCHETYPES: Archetype[] = [
     colorHue: 332,
     element: "土",
     animal: "象",
+    dimensionProfile: {
+      explore: 44,
+      action: 70,
+      risk: 38,
+      create: 58,
+      influence: 56,
+      build: 96,
+    },
     imagePaths: {
       portrait: "/assets/archetypes/builder.png",
       shareCard: "/assets/share-cards/builder.png",

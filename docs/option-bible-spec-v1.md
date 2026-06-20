@@ -467,7 +467,9 @@ MCP 自動生成圖片
 
 # 技術遷移備註
 
-目前 `packages/shared` 的 quiz engine 仍是 Alpha 版本：
+Alpha-05 已將 `packages/shared` 的 quiz engine 遷移為六維人格座標版本。
+
+舊版 Alpha 計分：
 
 ```text
 選項
@@ -475,7 +477,7 @@ MCP 自動生成圖片
 → 推出 primary / secondary / evolution
 ```
 
-下一步應遷移為：
+新版 Alpha-05 計分：
 
 ```text
 選項
@@ -507,9 +509,14 @@ dimensionScores:
 primaryType:
 secondaryType:
 evolutionType:
+archetypeMatches:
+  - key:
+    name:
+    distance:
+    similarityScore:
 ```
 
-必要資料庫延伸：
+下一輪必要資料庫延伸：
 
 ```text
 quiz_sessions.dimension_scores jsonb
@@ -517,4 +524,4 @@ archetype_results.dimension_scores jsonb
 quiz_answers.dimension_effect jsonb
 ```
 
-封閉測試前可以先保留現有 Alpha 計分，但圖片、題目、下一版 quiz engine 必須依照本文件重建。
+目前 API 已回傳 `dimensionScores` 與 `archetypeMatches`，前端 localStorage 也會保留這兩個欄位；資料庫 persistence 仍先寫入既有欄位，避免破壞目前正式環境。
