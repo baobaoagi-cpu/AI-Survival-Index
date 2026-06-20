@@ -14,6 +14,7 @@ export type ApiEnv = {
 loadLocalEnvFiles();
 
 const DEFAULT_APP_ORIGINS = [
+  "https://ai-survival-index.pages.dev",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://localhost:8765",
