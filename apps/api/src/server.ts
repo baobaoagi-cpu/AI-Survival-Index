@@ -5,6 +5,7 @@ import { readEnv } from "./env.js";
 import { healthRoute } from "./routes/health.js";
 import { quizRoute } from "./routes/quiz.js";
 import { lineRoute } from "./routes/line.js";
+import { adminRoute } from "./routes/admin.js";
 
 const env = readEnv();
 const app = new Hono();
@@ -29,6 +30,7 @@ app.options("*", (c) => c.body(null, 204));
 app.route("/health", healthRoute);
 app.route("/quiz", quizRoute);
 app.route("/line", lineRoute);
+app.route("/admin", adminRoute);
 
 serve({ fetch: app.fetch, port: env.port });
 

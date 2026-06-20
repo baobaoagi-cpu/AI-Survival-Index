@@ -9,6 +9,9 @@ export type ApiEnv = {
   supabaseServiceRoleKey: string | undefined;
   lineChannelSecret: string | undefined;
   lineChannelAccessToken: string | undefined;
+  adminUsername: string;
+  adminPassword: string;
+  adminSessionSecret: string;
 };
 
 loadLocalEnvFiles();
@@ -17,6 +20,8 @@ const DEFAULT_APP_ORIGINS = [
   "https://ai-survival-index.pages.dev",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
   "http://localhost:8765",
   "http://127.0.0.1:8765",
   "null",
@@ -38,6 +43,9 @@ export function readEnv(env = process.env): ApiEnv {
     supabaseServiceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
     lineChannelSecret: env.LINE_CHANNEL_SECRET,
     lineChannelAccessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
+    adminUsername: env.ADMIN_USERNAME || "admin",
+    adminPassword: env.ADMIN_PASSWORD || "admin123",
+    adminSessionSecret: env.ADMIN_SESSION_SECRET || "local-alpha-admin-secret",
   };
 }
 

@@ -35,9 +35,37 @@ PORT=8080
 APP_ORIGIN=http://localhost:5173,http://127.0.0.1:5173,http://localhost:8765,http://127.0.0.1:8765
 SUPABASE_URL=https://zcgsshcowoosunbfsvqp.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxx
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+ADMIN_SESSION_SECRET=replace-with-a-long-random-string
 ```
 
 Do not expose `SUPABASE_SERVICE_ROLE_KEY` in browser code, Cloudflare Pages frontend variables, or committed files.
+
+## Admin MVP
+
+Local admin console:
+
+```bash
+pnpm dev:api
+pnpm dev:admin
+```
+
+Default local URL:
+
+- Admin: `http://127.0.0.1:5174/`
+- Login: `admin / admin123`
+
+The browser admin app never talks to Supabase directly. It calls `apps/api`
+under `/admin/*`, and the API uses server-side Supabase credentials.
+
+Current MVP modules:
+
+- Dashboard
+- User list
+- Quiz session records
+- Question-to-image mapping
+- Friend graph table
 
 ## Railway API Deploy
 

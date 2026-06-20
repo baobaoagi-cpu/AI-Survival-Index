@@ -15,6 +15,15 @@ importers:
         specifier: ^5.5.4
         version: 5.9.3
 
+  apps/admin:
+    dependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vite:
+        specifier: ^5.4.0
+        version: 5.4.21(@types/node@22.19.21)
+
   apps/api:
     dependencies:
       '@ai-survival/shared':

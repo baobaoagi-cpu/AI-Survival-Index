@@ -5,11 +5,12 @@
   "description": "AI 時代生存指數 Alpha product workspace",
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "build": "pnpm --filter @ai-survival/shared build && pnpm --filter @ai-survival/api build && pnpm --filter @ai-survival/web build",
+    "build": "pnpm --filter @ai-survival/shared build && pnpm --filter @ai-survival/api build && pnpm --filter @ai-survival/web build && pnpm --filter @ai-survival/admin build",
     "check": "pnpm --filter @ai-survival/shared build && pnpm -r check",
     "typecheck": "pnpm --filter @ai-survival/shared build && pnpm -r typecheck",
     "build:alpha-pages": "node scripts/build-alpha-pages.cjs",
     "dev:web": "pnpm --filter @ai-survival/web dev",
+    "dev:admin": "pnpm --filter @ai-survival/admin dev",
     "dev:api": "pnpm --filter @ai-survival/api dev",
     "supabase": "supabase",
     "supabase:start": "supabase start --exclude storage-api,logflare,vector,imgproxy,edge-runtime --ignore-health-check",
