@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { Hono } from "hono";
-import { ARCHETYPES, QUIZ_SCENARIOS } from "@ai-survival/shared";
+import { ARCHETYPES, DIMENSION_KEYS, QUIZ_SCENARIOS, calculatePersonalityResult } from "@ai-survival/shared";
 import { readEnv } from "../env.js";
 import { createSupabaseAdmin } from "../services/supabase-admin.js";
 
@@ -98,7 +98,7 @@ adminRoute.get("/summary", async (c) => {
   const supabase = requireSupabase();
   if (!supabase) return c.json({ error: "supabase is not configured" }, 503);
 
-  const [profiles, sessions, shares, friendLinks, results, events] = await Promise.all([
+  const [profiles, sessions, shares, friendLinks, results, events, recentSessions] = await Promise.all([
     countRows(supabase, "profiles"),
     countRows(supabase, "quiz_sessions"),
     countRows(supabase, "share_events"),
@@ -109,6 +109,7 @@ adminRoute.get("/summary", async (c) => {
       .select("event_name,scenario_id,occurred_at")
       .order("occurred_at", { ascending: false })
       .limit(3000),
+    supabase.from("quiz_sessions").select("id").order("created_at", { ascending: false }).limit(300),
   ]);
 
   const now = Date.now();
@@ -119,6 +120,15 @@ adminRoute.get("/summary", async (c) => {
   const eventCounts = countBy(eventRows, "event_name");
   const answerEvents = eventRows.filter((event) => event.event_name === "answered_question");
   const answerCountsByScenario = countBy(answerEvents, "scenario_id");
+  const recentSessionIds = (recentSessions.data ?? []).map((session) => session.id);
+  const recentAnswers =
+    recentSessionIds.length > 0
+      ? await supabase
+          .from("quiz_answers")
+          .select("session_id,scenario_id,option_id,answered_at")
+          .in("session_id", recentSessionIds)
+      : { data: [], error: null };
+  const scoredSessions = scoreSessionsFromAnswers(recentAnswers.data ?? []);
 
   return c.json({
     totals: {
@@ -130,6 +140,8 @@ adminRoute.get("/summary", async (c) => {
       userEvents: events.error ? 0 : eventRows.length,
     },
     archetypeDistribution: distribution,
+    dimensionAverages: averageDimensionScores(scoredSessions),
+    similarityAverages: averageSimilarityScores(scoredSessions),
     funnel: {
       available: !events.error,
       error: events.error?.message ?? null,
@@ -212,11 +224,17 @@ adminRoute.get("/quiz-sessions", async (c) => {
   const profilesById = new Map((profiles.data ?? []).map((profile) => [profile.id, profile]));
 
   return c.json({
-    sessions: (sessions ?? []).map((session) => ({
-      ...session,
-      profile: session.profile_id ? profilesById.get(session.profile_id) ?? null : null,
-      answers: answersBySession.get(session.id) ?? [],
-    })),
+    sessions: (sessions ?? []).map((session) => {
+      const sessionAnswers = answersBySession.get(session.id) ?? [];
+      const score = scoreSessionAnswers(sessionAnswers);
+      return {
+        ...session,
+        profile: session.profile_id ? profilesById.get(session.profile_id) ?? null : null,
+        answers: sessionAnswers,
+        dimensionScores: score?.dimensionScores ?? null,
+        archetypeMatches: score?.archetypeMatches ?? [],
+      };
+    }),
   });
 });
 
@@ -334,4 +352,60 @@ function countBy(items: Record<string, unknown>[], key: string): Record<string, 
     counts[value] = (counts[value] ?? 0) + 1;
     return counts;
   }, {});
+}
+
+function scoreSessionsFromAnswers(answerRows: Record<string, unknown>[]) {
+  return [...groupBy(answerRows, "session_id").values()]
+    .map((answers) => scoreSessionAnswers(answers))
+    .filter((score): score is NonNullable<ReturnType<typeof scoreSessionAnswers>> => Boolean(score));
+}
+
+function scoreSessionAnswers(answerRows: Record<string, unknown>[]) {
+  const answers = answerRows
+    .slice()
+    .sort((a, b) => Date.parse(String(a.answered_at ?? "")) - Date.parse(String(b.answered_at ?? "")))
+    .map((answer) => ({
+      scenarioId: String(answer.scenario_id ?? ""),
+      optionId: String(answer.option_id ?? "a") as "a" | "b" | "c",
+    }))
+    .filter((answer) => answer.scenarioId && ["a", "b", "c"].includes(answer.optionId));
+
+  if (answers.length === 0) return null;
+
+  try {
+    return calculatePersonalityResult(answers, ARCHETYPES);
+  } catch {
+    return null;
+  }
+}
+
+function averageDimensionScores(scores: Array<{ dimensionScores: Record<string, number> }>): Record<string, number> {
+  if (scores.length === 0) {
+    return Object.fromEntries(DIMENSION_KEYS.map((key) => [key, 0]));
+  }
+
+  return Object.fromEntries(
+    DIMENSION_KEYS.map((key) => [
+      key,
+      Math.round(scores.reduce((total, score) => total + (score.dimensionScores[key] ?? 0), 0) / scores.length),
+    ]),
+  );
+}
+
+function averageSimilarityScores(
+  scores: Array<{ archetypeMatches: Array<{ key: string; similarityScore: number }> }>,
+): Record<string, number> {
+  if (scores.length === 0) {
+    return Object.fromEntries(ARCHETYPES.map((archetype) => [archetype.key, 0]));
+  }
+
+  return Object.fromEntries(
+    ARCHETYPES.map((archetype) => {
+      const total = scores.reduce((sum, score) => {
+        const match = score.archetypeMatches.find((item) => item.key === archetype.key);
+        return sum + (match?.similarityScore ?? 0);
+      }, 0);
+      return [archetype.key, Math.round(total / scores.length)];
+    }),
+  );
 }

@@ -47,6 +47,27 @@ Next database migration should add:
 - `archetype_results.dimension_scores jsonb`
 - `quiz_answers.dimension_effect jsonb`
 
+## Alpha-06 Fallback And Admin Analytics
+
+The playable Alpha HTML now has a browser-side dimension fallback. If `/quiz/score`
+is unavailable, the quiz page still calculates:
+
+- `dimensionScores`
+- `archetypeMatches`
+- `primaryType`
+- `secondaryType`
+- `evolutionType`
+
+The Admin Dashboard now computes analytics from `quiz_answers`:
+
+- average six-dimension distribution
+- average archetype similarity
+- per-session dimension scores
+- per-session top archetype matches
+
+These analytics are computed at API read time until the next database migration stores
+dedicated JSONB fields.
+
 ## Local Development
 
 ```bash

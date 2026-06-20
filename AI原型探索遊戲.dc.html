@@ -197,6 +197,38 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     'scene-06-future-self',
   ];
   const defaultApiBase = 'http://127.0.0.1:8080';
+  const dimensionKeys = ['explore', 'action', 'risk', 'create', 'influence', 'build'];
+  const fallbackDimensionProfiles = {
+    explorer: { explore: 95, action: 82, risk: 76, create: 68, influence: 46, build: 38 },
+    craftsman: { explore: 42, action: 58, risk: 28, create: 54, influence: 32, build: 86 },
+    guardian: { explore: 36, action: 56, risk: 24, create: 42, influence: 55, build: 62 },
+    navigator: { explore: 72, action: 78, risk: 55, create: 56, influence: 88, build: 66 },
+    strategist: { explore: 58, action: 42, risk: 50, create: 52, influence: 68, build: 70 },
+    inventor: { explore: 86, action: 60, risk: 72, create: 96, influence: 52, build: 58 },
+    trader: { explore: 70, action: 84, risk: 90, create: 54, influence: 50, build: 40 },
+    mentor: { explore: 56, action: 58, risk: 36, create: 55, influence: 90, build: 62 },
+    builder: { explore: 44, action: 70, risk: 38, create: 58, influence: 56, build: 96 },
+  };
+  const optionBible = {
+    'scene-01-message:a': { primaryArchetype: 'explorer', secondaryArchetype: 'inventor', dimensionEffect: { explore: 3, create: 2, risk: 1, action: 1 } },
+    'scene-01-message:b': { primaryArchetype: 'craftsman', secondaryArchetype: 'builder', dimensionEffect: { build: 3, action: 2, create: 1, risk: -1 } },
+    'scene-01-message:c': { primaryArchetype: 'guardian', secondaryArchetype: 'mentor', dimensionEffect: { influence: 3, build: 1, risk: -1, explore: 1 } },
+    'scene-02-system-change:a': { primaryArchetype: 'navigator', secondaryArchetype: 'mentor', dimensionEffect: { influence: 3, action: 2, explore: 2, build: 1 } },
+    'scene-02-system-change:b': { primaryArchetype: 'strategist', secondaryArchetype: 'builder', dimensionEffect: { build: 2, influence: 1, create: 1, action: -1, risk: -1 } },
+    'scene-02-system-change:c': { primaryArchetype: 'craftsman', secondaryArchetype: 'builder', dimensionEffect: { action: 3, build: 3, create: 1, risk: 1 } },
+    'scene-03-risk-opportunity:a': { primaryArchetype: 'trader', secondaryArchetype: 'explorer', dimensionEffect: { risk: 3, action: 3, explore: 2, build: -1 } },
+    'scene-03-risk-opportunity:b': { primaryArchetype: 'strategist', secondaryArchetype: 'guardian', dimensionEffect: { build: 2, influence: 1, risk: -1, action: -1, explore: 1 } },
+    'scene-03-risk-opportunity:c': { primaryArchetype: 'inventor', secondaryArchetype: 'explorer', dimensionEffect: { create: 3, explore: 2, risk: 2, action: 1 } },
+    'scene-04-friend-anxiety:a': { primaryArchetype: 'mentor', secondaryArchetype: 'navigator', dimensionEffect: { influence: 3, create: 1, build: 1, action: 1 } },
+    'scene-04-friend-anxiety:b': { primaryArchetype: 'guardian', secondaryArchetype: 'mentor', dimensionEffect: { influence: 2, build: 2, risk: -2, action: 1 } },
+    'scene-04-friend-anxiety:c': { primaryArchetype: 'navigator', secondaryArchetype: 'strategist', dimensionEffect: { influence: 2, build: 2, explore: 2, action: 1 } },
+    'scene-05-blank-canvas:a': { primaryArchetype: 'inventor', secondaryArchetype: 'explorer', dimensionEffect: { create: 3, explore: 3, risk: 2, action: 1 } },
+    'scene-05-blank-canvas:b': { primaryArchetype: 'builder', secondaryArchetype: 'craftsman', dimensionEffect: { build: 3, action: 2, create: 1, risk: -1 } },
+    'scene-05-blank-canvas:c': { primaryArchetype: 'trader', secondaryArchetype: 'strategist', dimensionEffect: { risk: 2, action: 2, explore: 2, influence: 1 } },
+    'scene-06-future-self:a': { primaryArchetype: 'explorer', secondaryArchetype: 'trader', dimensionEffect: { explore: 3, action: 2, risk: 2, create: 1 } },
+    'scene-06-future-self:b': { primaryArchetype: 'builder', secondaryArchetype: 'guardian', dimensionEffect: { build: 3, action: 2, influence: 1, risk: -1 } },
+    'scene-06-future-self:c': { primaryArchetype: 'mentor', secondaryArchetype: 'navigator', dimensionEffect: { influence: 3, build: 2, create: 1, action: 1 } },
+  };
 
   function apiBase() {
     return (
@@ -229,6 +261,69 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     });
   }
 
+  function emptyDimensionScores() {
+    return Object.fromEntries(dimensionKeys.map((key) => [key, 0]));
+  }
+
+  function normalizeDimensionScores(scores) {
+    const values = dimensionKeys.map((key) => scores[key] || 0);
+    const min = Math.min(0, ...values);
+    const max = Math.max(...values);
+    const range = max - min;
+    if (range <= 0) return emptyDimensionScores();
+    return Object.fromEntries(dimensionKeys.map((key) => [key, Math.round((((scores[key] || 0) - min) / range) * 100)]));
+  }
+
+  function archetypeList() {
+    const map = window.AI_SURVIVAL_ARCHETYPE_MAP || {};
+    return Object.keys(fallbackDimensionProfiles).map((key) => ({
+      key,
+      name: map[key]?.name || key,
+      dimensionProfile: map[key]?.dimensionProfile || fallbackDimensionProfiles[key],
+    }));
+  }
+
+  function calculateLocalResult(uiAnswers, scenarios, fallbackTally) {
+    const apiAnswers = toApiAnswers(uiAnswers, scenarios || []);
+    const rawDimensions = emptyDimensionScores();
+    const archetypeScores = { ...(fallbackTally || {}) };
+    apiAnswers.forEach((answer) => {
+      const entry = optionBible[answer.scenarioId + ':' + answer.optionId];
+      if (!entry) return;
+      dimensionKeys.forEach((key) => {
+        rawDimensions[key] += entry.dimensionEffect[key] || 0;
+      });
+      archetypeScores[entry.primaryArchetype] = (archetypeScores[entry.primaryArchetype] || 0) + 1;
+      archetypeScores[entry.secondaryArchetype] = (archetypeScores[entry.secondaryArchetype] || 0) + 0.5;
+    });
+    const dimensionScores = normalizeDimensionScores(rawDimensions);
+    const maxDistance = Math.sqrt(dimensionKeys.length * 100 * 100);
+    const archetypeMatches = archetypeList()
+      .map((item, index) => {
+        const distance = Math.sqrt(dimensionKeys.reduce((total, key) => {
+          const diff = dimensionScores[key] - item.dimensionProfile[key];
+          return total + diff * diff;
+        }, 0));
+        return {
+          key: item.key,
+          name: item.name,
+          distance: Number(distance.toFixed(4)),
+          similarityScore: Math.max(0, Math.round((1 - distance / maxDistance) * 100)),
+          index,
+        };
+      })
+      .sort((a, b) => a.distance - b.distance || a.index - b.index)
+      .map(({ index, ...item }) => item);
+    const primaryType = archetypeMatches[0]?.key || 'explorer';
+    const secondaryType = archetypeMatches.find((item) => item.key !== primaryType)?.key || 'navigator';
+    const evolutionMap = { explorer: 'inventor', craftsman: 'builder', guardian: 'mentor', navigator: 'strategist', strategist: 'navigator', inventor: 'explorer', trader: 'strategist', mentor: 'navigator', builder: 'guardian' };
+    const preferred = evolutionMap[primaryType];
+    const evolutionType = preferred && preferred !== primaryType && preferred !== secondaryType
+      ? preferred
+      : (archetypeMatches.find((item) => ![primaryType, secondaryType].includes(item.key))?.key || 'navigator');
+    return { dimensionScores, archetypeMatches, archetypeScores, primaryType, secondaryType, evolutionType };
+  }
+
   async function score(uiAnswers, scenarios) {
     const response = await fetch(apiBase() + '/quiz/score', {
       method: 'POST',
@@ -252,7 +347,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     const payload = {
       answers: uiAnswers,
       apiAnswers: serverResult?.answers || toApiAnswers(uiAnswers, scenarios || []),
-      archetypeScores: serverResult?.archetypeScores || tally,
+      archetypeScores: serverResult?.archetypeScores || resolved.archetypeScores || tally,
       dimensionScores: serverResult?.dimensionScores || resolved.dimensionScores || null,
       archetypeMatches: serverResult?.archetypeMatches || resolved.archetypeMatches || [],
       primaryType: serverResult?.primaryType || resolved.primaryType,
@@ -294,7 +389,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     return payload;
   }
 
-  return { score, saveAlphaResult, toApiAnswers, apiBase };
+  return { score, saveAlphaResult, toApiAnswers, apiBase, calculateLocalResult };
 })();
 </script>
 <script>
@@ -334,7 +429,10 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     return output;
   }
 
-  function resolveResult(tally) {
+  function resolveResult(tally, answers = state.answers) {
+    if (window.AI_SURVIVAL_QUIZ_API?.calculateLocalResult && answers?.length) {
+      return window.AI_SURVIVAL_QUIZ_API.calculateLocalResult(answers, scenarios, tally);
+    }
     const keys = Object.keys(arch);
     const ranked = keys.map((key, index) => ({ key, score: tally[key] || 0, index })).sort((a, b) => b.score - a.score || a.index - b.index);
     const primaryType = ranked[0]?.key || 'explorer';
@@ -344,7 +442,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
     const evolutionType = preferred && preferred !== primaryType && preferred !== secondaryType
       ? preferred
       : (ranked.find((t) => ![primaryType, secondaryType].includes(t.key) && t.score > 0)?.key || keys.find((key) => ![primaryType, secondaryType].includes(key)) || 'navigator');
-    return { primaryType, secondaryType, evolutionType };
+    return { primaryType, secondaryType, evolutionType, dimensionScores: null, archetypeMatches: [] };
   }
 
   function saveResult(resolved, serverResult, apiError) {
@@ -372,7 +470,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
   }
 
   async function finishQuiz() {
-    const resolved = resolveResult(state.tally);
+    const resolved = resolveResult(state.tally, state.answers);
     renderSync();
     try {
       const serverResult = await window.AI_SURVIVAL_QUIZ_API.score(state.answers, scenarios);
@@ -590,7 +688,10 @@ class Component extends DCLogic {
       .sort((a, b) => b.score - a.score || a.index - b.index);
   }
 
-  resolveResult(tally) {
+  resolveResult(tally, answers = this.state.answers) {
+    if (window.AI_SURVIVAL_QUIZ_API?.calculateLocalResult && answers?.length) {
+      return window.AI_SURVIVAL_QUIZ_API.calculateLocalResult(answers, this.scenarios, tally);
+    }
     const ranked = this.rankedTypes(tally);
     const primaryType = ranked[0]?.key || 'explorer';
     const secondaryType = ranked.find(t => t.key !== primaryType && t.score > 0)?.key || this.nextUnused(primaryType, []);
@@ -609,7 +710,7 @@ class Component extends DCLogic {
     const evolutionType = preferredEvolution && preferredEvolution !== primaryType && preferredEvolution !== secondaryType
       ? preferredEvolution
       : (ranked.find(t => ![primaryType, secondaryType].includes(t.key) && t.score > 0)?.key || this.nextUnused(primaryType, [secondaryType]));
-    return { primaryType, secondaryType, evolutionType };
+    return { primaryType, secondaryType, evolutionType, dimensionScores: null, archetypeMatches: [] };
   }
 
   nextUnused(primaryType, used) {
@@ -617,7 +718,7 @@ class Component extends DCLogic {
   }
 
   async finishQuiz(tally, answers) {
-    const resolved = this.resolveResult(tally);
+    const resolved = this.resolveResult(tally, answers);
     try {
       const serverResult = await window.AI_SURVIVAL_QUIZ_API.score(answers, this.scenarios);
       const payload = this.saveResult(tally, answers, resolved, serverResult, null);
@@ -631,7 +732,7 @@ class Component extends DCLogic {
     }
   }
 
-  saveResult(tally, answers, resolved = this.resolveResult(tally), serverResult = null, apiError = null) {
+  saveResult(tally, answers, resolved = this.resolveResult(tally, answers), serverResult = null, apiError = null) {
     const payload = window.AI_SURVIVAL_QUIZ_API.saveAlphaResult({
       answers,
       uiAnswers: answers,
@@ -699,7 +800,7 @@ class Component extends DCLogic {
 
     const names = Object.values(this.arch).map(a => a.name);
 
-    const key = this.state.lockedKey || this.resolveResult(this.state.tally).primaryType;
+    const key = this.state.lockedKey || this.resolveResult(this.state.tally, this.state.answers).primaryType;
     const r = this.arch[key];
     const result = {
       n: r.n,

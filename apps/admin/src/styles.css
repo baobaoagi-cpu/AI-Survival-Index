@@ -327,6 +327,11 @@ code {
   background: rgba(255, 255, 255, 0.035);
 }
 
+.empty-state.compact {
+  padding: 12px;
+  font-size: 12px;
+}
+
 .bar-row {
   display: grid;
   grid-template-columns: 108px minmax(0, 1fr) 44px;
@@ -438,12 +443,60 @@ td:nth-child(2) {
 }
 
 .answer-line span,
-.option-list span {
+.option-list span,
+.match-line span {
   border-radius: 999px;
   padding: 7px 10px;
   color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
   background: rgba(255, 255, 255, 0.07);
+}
+
+.match-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.match-line b {
+  color: #f7dfaa;
+}
+
+.match-line small {
+  margin-left: 6px;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.mini-bars {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mini-bars span {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mini-bars b,
+.mini-bars strong {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 11px;
+}
+
+.mini-bars i {
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mini-bars em {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #58d9c9, #d8b46b);
 }
 
 .card-grid {
@@ -535,5 +588,9 @@ td:nth-child(2) {
 
   .asset-card {
     grid-template-columns: 1fr;
+  }
+
+  .mini-bars {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

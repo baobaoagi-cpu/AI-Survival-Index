@@ -18,6 +18,15 @@ const ARCHETYPE_LABELS: Record<string, string> = {
   unknown: "未知",
 };
 
+const DIMENSION_LABELS: Record<string, string> = {
+  explore: "探索",
+  action: "行動",
+  risk: "風險",
+  create: "創造",
+  influence: "影響",
+  build: "建造",
+};
+
 type TabKey = "dashboard" | "users" | "sessions" | "assets" | "friends";
 
 type AdminState = {
@@ -211,6 +220,8 @@ function renderTab() {
 function dashboardTemplate(data: any = {}) {
   const totals = data.totals ?? {};
   const distribution = data.archetypeDistribution ?? {};
+  const dimensionAverages = data.dimensionAverages ?? {};
+  const similarityAverages = data.similarityAverages ?? {};
   const funnel = data.funnel ?? {};
   const funnelEvents = funnel.events ?? {};
   return `
@@ -243,6 +254,23 @@ function dashboardTemplate(data: any = {}) {
         ${Object.entries(ARCHETYPE_LABELS)
           .filter(([key]) => key !== "unknown")
           .map(([key, label]) => bar(label, Number(distribution[key] ?? 0), maxValue(distribution)))
+          .join("")}
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h3>六維人格分布</h3><span>由 quiz_answers 即時計算</span></div>
+      <div class="bars">
+        ${Object.entries(DIMENSION_LABELS)
+          .map(([key, label]) => bar(label, Number(dimensionAverages[key] ?? 0), 100, "%"))
+          .join("")}
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h3>平均原型相似度</h3><span>最近 300 筆測驗</span></div>
+      <div class="bars">
+        ${Object.entries(ARCHETYPE_LABELS)
+          .filter(([key]) => key !== "unknown")
+          .map(([key, label]) => bar(label, Number(similarityAverages[key] ?? 0), 100, "%"))
           .join("")}
       </div>
     </section>
@@ -298,6 +326,8 @@ function sessionsTemplate(data: any = {}) {
             <div class="answer-line">
               ${(session.answers ?? []).map((answer: any) => `<span>${escapeHtml(answer.scenario_id)} / ${escapeHtml(answer.option_id)} / ${labelType(answer.archetype_key)}</span>`).join("")}
             </div>
+            ${dimensionBars(session.dimensionScores)}
+            ${matchChips(session.archetypeMatches)}
           </article>
         `).join("")}
       </div>
@@ -361,9 +391,9 @@ function funnelStep(label: string, value: unknown) {
   return `<article class="funnel-step"><span>${label}</span><strong>${value ?? 0}</strong></article>`;
 }
 
-function bar(label: string, value: number, max: number) {
+function bar(label: string, value: number, max: number, suffix = "") {
   const width = max > 0 ? Math.max(5, Math.round((value / max) * 100)) : 0;
-  return `<div class="bar-row"><span>${label}</span><div><i style="width:${width}%"></i></div><b>${value}</b></div>`;
+  return `<div class="bar-row"><span>${label}</span><div><i style="width:${width}%"></i></div><b>${value}${suffix}</b></div>`;
 }
 
 function maxValue(values: Record<string, number>) {
@@ -380,6 +410,35 @@ function typePill(type?: string | null) {
 
 function labelType(type?: string | null) {
   return ARCHETYPE_LABELS[type || "unknown"] || type || "未知";
+}
+
+function dimensionBars(scores?: Record<string, number> | null) {
+  if (!scores) return `<div class="empty-state compact">這筆測驗尚無可計算的六維資料</div>`;
+  return `
+    <div class="mini-bars">
+      ${Object.entries(DIMENSION_LABELS)
+        .map(([key, label]) => {
+          const value = Number(scores[key] ?? 0);
+          return `<span><b>${label}</b><i><em style="width:${Math.max(4, value)}%"></em></i><strong>${value}</strong></span>`;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function matchChips(matches?: Array<{ key: string; name: string; similarityScore: number; distance: number }> | null) {
+  const topMatches = (matches ?? []).slice(0, 3);
+  if (topMatches.length === 0) return "";
+  return `
+    <div class="match-line">
+      ${topMatches
+        .map(
+          (match) =>
+            `<span>${labelType(match.key)} <b>${Number(match.similarityScore ?? 0)}%</b><small>d=${Number(match.distance ?? 0).toFixed(1)}</small></span>`,
+        )
+        .join("")}
+    </div>
+  `;
 }
 
 function shortId(value: string) {
