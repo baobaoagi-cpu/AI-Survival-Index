@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./data/archetypes.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="./alpha-app.css" rel="stylesheet">
+<style>
+  body { margin:0; background:#050409; font-family:'Noto Sans TC', sans-serif; -webkit-font-smoothing:antialiased; }
+  [data-deck]::-webkit-scrollbar { display:none; }
+  @keyframes floatA { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(22px,-32px) scale(1.12) } }
+  @keyframes floatB { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(-26px,24px) scale(1.16) } }
+  @keyframes shimmer { 0%{ transform:translateX(-160%) skewX(-18deg) } 60%,100%{ transform:translateX(320%) skewX(-18deg) } }
+  @keyframes gshift { 0%,100%{ background-position:0% 50% } 50%{ background-position:100% 50% } }
+  @keyframes ctaPulse { 0%,100%{ box-shadow:0 12px 42px oklch(0.6 0.2 300/0.5), 0 0 0 0 oklch(0.7 0.2 300/0.35) } 50%{ box-shadow:0 14px 52px oklch(0.6 0.2 300/0.7), 0 0 0 14px oklch(0.7 0.2 300/0) } }
+  @keyframes bob { 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-7px) } }
+  @keyframes spinSlow { to { transform:rotate(360deg) } }
+  @keyframes dotPulse { 0%,100%{ opacity:1; transform:scale(1) } 50%{ opacity:0.35; transform:scale(0.78) } }
+</style>
+</helmet>
+
+<div class="alpha-app">
+
+  <!-- ambient background -->
+  <div style="position:absolute; inset:0; z-index:0; overflow:hidden;">
+    <div style="position:absolute; inset:0; background:radial-gradient(140% 60% at 50% -10%, oklch(0.5 0.18 290/0.35), transparent 60%);"></div>
+    <div style="position:absolute; width:360px; height:360px; top:-90px; left:-70px; border-radius:50%; background:radial-gradient(circle, oklch(0.6 0.2 290/0.45), transparent 65%); filter:blur(18px); animation:floatA 15s ease-in-out infinite;"></div>
+    <div style="position:absolute; width:320px; height:320px; bottom:170px; right:-90px; border-radius:50%; background:radial-gradient(circle, oklch(0.62 0.2 205/0.4), transparent 65%); filter:blur(20px); animation:floatB 19s ease-in-out infinite;"></div>
+    <div style="position:absolute; width:300px; height:300px; top:330px; left:-60px; border-radius:50%; background:radial-gradient(circle, oklch(0.62 0.22 330/0.34), transparent 65%); filter:blur(22px); animation:floatA 23s ease-in-out infinite reverse;"></div>
+    <div style="position:absolute; inset:0; opacity:0.5; mix-blend-mode:overlay; background-image:radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size:3px 3px;"></div>
+    <div style="position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 50%, transparent 45%, rgba(0,0,0,0.55) 100%);"></div>
+  </div>
+
+  <!-- LIFF close affordance -->
+  <div style="position:absolute; top:15px; right:15px; z-index:6; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5); font-size:15px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);">✕</div>
+
+  <!-- scroll content -->
+  <div class="alpha-scroll" style="z-index:1;">
+
+    <div style="height:72px;"></div>
+
+    <!-- hero -->
+    <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 24px;">
+      <div style="display:inline-flex; align-items:center; gap:8px; padding:7px 15px; border-radius:999px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.05); margin-bottom:26px;">
+        <span style="width:7px; height:7px; border-radius:50%; background:oklch(0.78 0.18 152); box-shadow:0 0 10px oklch(0.78 0.18 152); animation:dotPulse 1.8s ease-in-out infinite;"></span>
+        <span style="font-family:'Space Grotesk', sans-serif; font-size:12px; letter-spacing:0.16em; color:rgba(255,255,255,0.78);">即時演化中</span>
+      </div>
+      <div style="font-size:30px; font-weight:700; color:rgba(255,255,255,0.9); letter-spacing:0.06em; line-height:1.1;">AI時代</div>
+      <div style="font-size:48px; font-weight:900; line-height:1.06; letter-spacing:-0.01em; margin-top:6px; background:linear-gradient(100deg, oklch(0.83 0.15 288), oklch(0.85 0.13 218), oklch(0.83 0.17 332)); background-size:200% 200%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:gshift 8s ease-in-out infinite;">你正在變成誰？</div>
+      <div style="font-size:16px; color:rgba(255,255,255,0.6); line-height:1.75; margin-top:20px; max-width:300px; text-wrap:pretty;">探索你的 AI 人格原型，<br>以及你正在演化的未來方向。</div>
+    </div>
+
+    <div style="height:38px;"></div>
+
+    <!-- deck header -->
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; padding:0 24px; margin-bottom:14px;">
+      <div>
+        <div style="font-size:15px; font-weight:700; color:rgba(255,255,255,0.9);">九種原型</div>
+        <div style="font-size:12.5px; color:rgba(255,255,255,0.42); margin-top:3px;">滑動探索 · 等待解鎖</div>
+      </div>
+      <div style="font-family:'Space Grotesk', sans-serif; font-size:14px; color:rgba(255,255,255,0.5);"><span style="color:#fff; font-weight:700;">{{currentLabel}}</span> / {{total}}</div>
+    </div>
+
+    <!-- archetype deck -->
+    <div data-deck onScroll="{{onDeckScroll}}" style="display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; padding:6px 24px 10px; scrollbar-width:none;">
+      <sc-for list="{{archetypes}}" as="a" hint-placeholder-count="3">
+        <div style="position:relative; flex:0 0 auto; width:232px; height:322px; scroll-snap-align:start; border-radius:26px; overflow:hidden; padding:26px 22px; display:flex; flex-direction:column; align-items:center; justify-content:space-between; border:1px solid rgba(255,255,255,0.09); background:linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015)), radial-gradient(120% 70% at 50% 0%, {{a.soft}}, transparent 62%); backdrop-filter:blur(6px);">
+          <sc-if value="{{locked}}" hint-placeholder-val="{{ true }}">
+            <span style="position:absolute; top:0; left:0; width:55%; height:100%; background:linear-gradient(100deg, transparent, rgba(255,255,255,0.10), transparent); animation:shimmer 5.5s ease-in-out infinite; pointer-events:none;"></span>
+          </sc-if>
+          <div style="font-family:'Space Grotesk', sans-serif; font-size:11px; letter-spacing:0.28em; color:{{a.color}};">TYPE {{a.n}}</div>
+          <div style="position:relative; display:flex; align-items:center; justify-content:center; width:126px; height:126px; border-radius:22px; border:1px solid rgba(214,174,91,0.56); box-shadow:0 16px 44px rgba(0,0,0,0.34), 0 0 32px {{a.glow}}; background:linear-gradient(180deg, #fffdf8, #f4efe4); padding:7px; animation:bob 6s ease-in-out infinite;">
+            <div style="width:100%; height:100%; border-radius:16px; display:flex; align-items:center; justify-content:center; color:#17120a; font-family:'Space Grotesk', sans-serif; font-size:42px; font-weight:700; background:radial-gradient(circle at 50% 35%, rgba(214,174,91,0.22), transparent 70%);">{{a.symbol}}</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:9px;">
+            <div style="font-size:20px; font-weight:700; color:rgba(255,255,255,0.92); letter-spacing:0.02em;">{{a.name}}</div>
+            <div style="font-size:12.5px; line-height:1.55; color:rgba(255,255,255,0.54); max-width:176px; text-align:center;">{{a.manifesto}}</div>
+            <sc-if value="{{locked}}" hint-placeholder-val="{{ true }}">
+              <div style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:rgba(255,255,255,0.5);"><span style="width:6px; height:6px; border-radius:50%; background:{{a.color}}; box-shadow:0 0 8px {{a.glow}};"></span>待解鎖</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- social proof -->
+    <div style="display:flex; flex-direction:column; align-items:center; gap:13px; padding:32px 24px 0;">
+      <div style="display:flex;">
+        <span style="width:30px; height:30px; border-radius:50%; border:2px solid #070510; background:linear-gradient(135deg, oklch(0.7 0.17 288), oklch(0.6 0.18 320));"></span>
+        <span style="width:30px; height:30px; border-radius:50%; border:2px solid #070510; margin-left:-10px; background:linear-gradient(135deg, oklch(0.7 0.17 215), oklch(0.6 0.18 255));"></span>
+        <span style="width:30px; height:30px; border-radius:50%; border:2px solid #070510; margin-left:-10px; background:linear-gradient(135deg, oklch(0.72 0.17 165), oklch(0.62 0.18 200));"></span>
+        <span style="width:30px; height:30px; border-radius:50%; border:2px solid #070510; margin-left:-10px; background:linear-gradient(135deg, oklch(0.74 0.16 55), oklch(0.66 0.18 30));"></span>
+        <span style="width:30px; height:30px; border-radius:50%; border:2px solid #070510; margin-left:-10px; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk', sans-serif; font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.1);">+</span>
+      </div>
+      <div style="font-size:14px; color:rgba(255,255,255,0.55); text-align:center;">已有 <span style="font-family:'Space Grotesk', sans-serif; font-weight:700; color:#fff;">{{count}}</span> 人發現自己的原型</div>
+    </div>
+
+    <div style="height:150px;"></div>
+  </div>
+
+  <!-- waking toast -->
+  <sc-if value="{{waking}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; left:50%; bottom:122px; z-index:5; transform:translateX(-50%); display:inline-flex; align-items:center; gap:10px; padding:12px 20px; border-radius:999px; background:rgba(20,15,34,0.92); border:1px solid rgba(255,255,255,0.14); backdrop-filter:blur(8px); white-space:nowrap; box-shadow:0 12px 40px rgba(0,0,0,0.55);">
+      <span style="width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,0.25); border-top-color:#fff; animation:spinSlow 0.8s linear infinite;"></span>
+      <span style="font-size:14px; color:rgba(255,255,255,0.92);">正在喚醒你的原型…</span>
+    </div>
+  </sc-if>
+
+  <!-- primary CTA -->
+  <div style="position:absolute; left:0; right:0; bottom:0; z-index:4; padding:18px 24px 26px; background:linear-gradient(to top, #070510 36%, rgba(7,5,16,0.92) 66%, transparent);">
+    <div style="text-align:center; font-size:13.5px; color:rgba(255,255,255,0.55); margin-bottom:14px;">你的原型，已經存在。</div>
+    <button onClick="{{onStart}}" style-active="transform:scale(0.97)" style="width:100%; height:60px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:18px; font-weight:700; color:#fff; letter-spacing:0.08em; display:flex; align-items:center; justify-content:center; gap:10px; border:1px solid rgba(255,255,255,0.2); background:linear-gradient(100deg, oklch(0.68 0.2 292), oklch(0.64 0.21 326), oklch(0.7 0.19 256)); background-size:170% 170%; animation:ctaPulse 2.6s ease-in-out infinite, gshift 6s ease-in-out infinite;">
+      <span>開始探索</span>
+      <span style="font-size:20px;">→</span>
+    </button>
+    <div style="text-align:center; font-size:11.5px; color:rgba(255,255,255,0.4); letter-spacing:0.05em; margin-top:12px;">30 秒 · 無需註冊 · 立即顯現</div>
+  </div>
+
+</div>
+</x-dc>
+<div id="alpha-fallback-home" style="position:fixed; inset:0; z-index:9999; display:flex; justify-content:center; background:#050409; color:#fff; font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;">
+  <div style="position:relative; width:100%; max-width:390px; min-height:100dvh; overflow:hidden; background:#070510;">
+    <div style="position:absolute; inset:0; background:radial-gradient(140% 60% at 50% -10%, rgba(153,96,255,0.32), transparent 60%), radial-gradient(90% 60% at 80% 72%, rgba(38,190,190,0.24), transparent 62%);"></div>
+    <div style="position:absolute; inset:0; opacity:0.45; background-image:radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size:3px 3px;"></div>
+    <div style="position:relative; min-height:100dvh; display:flex; flex-direction:column; justify-content:center; padding:42px 24px 32px; text-align:center;">
+      <div style="display:inline-flex; align-items:center; justify-content:center; align-self:center; gap:8px; padding:7px 15px; border-radius:999px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); margin-bottom:26px;">
+        <span style="width:7px; height:7px; border-radius:50%; background:#84f0bd; box-shadow:0 0 10px #84f0bd;"></span>
+        <span style="font-family:Arial,sans-serif; font-size:12px; letter-spacing:0.16em; color:rgba(255,255,255,0.78);">ALPHA READY</span>
+      </div>
+      <div style="font-size:30px; font-weight:700; color:rgba(255,255,255,0.9); letter-spacing:0.06em; line-height:1.1;">AI時代</div>
+      <div style="font-size:48px; font-weight:900; line-height:1.06; margin-top:6px; background:linear-gradient(100deg, #d9b7ff, #9fd7ff, #ff9bd2); -webkit-background-clip:text; background-clip:text; color:transparent;">你正在變成誰？</div>
+      <div style="font-size:16px; color:rgba(255,255,255,0.62); line-height:1.75; margin:20px auto 0; max-width:300px;">探索你的 AI 人格原型，<br>以及你正在演化的未來方向。</div>
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin:34px 0 30px;">
+        <div style="height:86px; border-radius:18px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg,#fffdf8,#f4efe4); color:#17120a; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900;">◇</div>
+        <div style="height:86px; border-radius:18px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg,#fffdf8,#f4efe4); color:#17120a; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900;">◆</div>
+        <div style="height:86px; border-radius:18px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg,#fffdf8,#f4efe4); color:#17120a; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900;">▲</div>
+      </div>
+      <button onclick="window.location.href='./AI原型探索遊戲.dc.html'" style="width:100%; height:60px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:18px; font-weight:800; color:#fff; letter-spacing:0.08em; border:1px solid rgba(255,255,255,0.22); background:linear-gradient(100deg, #8758ff, #d94fa8, #4e9fff); box-shadow:0 14px 46px rgba(135,88,255,0.42);">開始探索 →</button>
+      <div style="font-size:11.5px; color:rgba(255,255,255,0.42); letter-spacing:0.05em; margin-top:12px;">30 秒 · 無需註冊 · 立即顯現</div>
+    </div>
+  </div>
+</div>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 390, &quot;height&quot;: 844 },
+  &quot;startingCount&quot;: { &quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 12847, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 0, &quot;max&quot;: 999999 },
+  &quot;tickerOn&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;locked&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; }
+}">
+class Component extends DCLogic {
+  state = { count: 0, current: 1, waking: false };
+
+  componentDidMount() {
+    const base = this.props.startingCount ?? 12847;
+    this.setState({ count: base });
+    if (this.props.tickerOn !== false) {
+      this._t = setInterval(() => {
+        this.setState(s => ({ count: (s.count || base) + 1 + Math.floor(Math.random() * 3) }));
+      }, 2200);
+    }
+  }
+  componentWillUnmount() {
+    clearInterval(this._t);
+    clearTimeout(this._wake);
+  }
+
+  renderVals() {
+    // TODO: remove fallback once every page fully consumes data/archetypes.js.
+    const base = window.AI_SURVIVAL_ARCHETYPES || [
+      { n: '01', name: 'AI探險家', hue: 288, symbol: '◇', manifesto: '第一個走進未知的人' },
+      { n: '02', name: 'AI工匠',   hue: 255, symbol: '◆', manifesto: '把工具磨成自己的武器' },
+      { n: '03', name: 'AI守護者', hue: 210, symbol: '●', manifesto: '在變動裡守住重要的人' },
+      { n: '04', name: 'AI領航員', hue: 170, symbol: '▲', manifesto: '帶大家穿過迷霧' },
+      { n: '05', name: 'AI策士',   hue: 135, symbol: '◎', manifesto: '看見局勢背後的規則' },
+      { n: '06', name: 'AI發明家', hue: 95,  symbol: '✦', manifesto: '讓不存在的東西開始存在' },
+      { n: '07', name: 'AI交易員', hue: 55,  symbol: '◈', manifesto: '在不確定裡聞到機會' },
+      { n: '08', name: 'AI導師',   hue: 28,  symbol: '◉', manifesto: '讓身邊的人一起變強' },
+      { n: '09', name: 'AI建造者', hue: 332, symbol: '▣', manifesto: '打造能留下來的系統' },
+    ];
+    const archetypes = base.map(a => ({
+      n: a.n,
+      name: a.name,
+      symbol: a.symbol,
+      manifesto: a.manifesto,
+      color: `oklch(0.76 0.16 ${a.hue})`,
+      ring:  `oklch(0.76 0.16 ${a.hue} / 0.55)`,
+      glow:  `oklch(0.7 0.18 ${a.hue} / 0.4)`,
+      soft:  `oklch(0.76 0.16 ${a.hue} / 0.13)`,
+    }));
+
+    const c = this.state.count || (this.props.startingCount ?? 12847);
+
+    return {
+      archetypes,
+      total: '09',
+      currentLabel: String(this.state.current).padStart(2, '0'),
+      count: c.toLocaleString('en-US'),
+      locked: this.props.locked ?? true,
+      waking: this.state.waking,
+      onDeckScroll: (e) => {
+        const step = 248;
+        const idx = Math.min(8, Math.max(0, Math.round(e.target.scrollLeft / step)));
+        if (idx + 1 !== this.state.current) this.setState({ current: idx + 1 });
+      },
+      onStart: () => {
+        clearTimeout(this._wake);
+        this.setState({ waking: true });
+        this._wake = setTimeout(() => {
+          window.location.href = './AI原型探索遊戲.dc.html';
+        }, 650);
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

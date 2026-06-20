@@ -1,0 +1,109 @@
+{
+  "version": "locked-v1",
+  "locked": true,
+  "lockReason": "User explicitly approved this as logo-level kamon linework. Lines, silhouette, proportions, and composition must not change.",
+  "assetSet": "techno-spiritual-crests-locked-v1",
+  "sourceReference": "../references/techno-spiritual-crests-LOCKED-v1.png",
+  "logoLineSource": "../references/techno-spiritual-crests-LOCKED-v1-logo-line-source.png",
+  "preview": "./archetype-crests-preview.png",
+  "changePolicy": {
+    "forbidden": [
+      "change line art",
+      "change animal silhouette",
+      "change internal linework",
+      "change proportions",
+      "change composition",
+      "redraw with another model",
+      "replace active assets with generated variants"
+    ],
+    "allowed": [
+      "color variation",
+      "material rendering",
+      "foil / metal / glass / holographic treatment",
+      "lighting treatment",
+      "background treatment",
+      "export format adaptation",
+      "non-destructive presentation mockups"
+    ]
+  },
+  "style": {
+    "summary": "Locked black/gold/teal techno-spiritual animal crest set with strong animal readability, circular kamon-like framing, AI circuitry accents, and premium oracle emblem energy.",
+    "principles": [
+      "do not replace unless explicitly requested",
+      "preserve this exact visual direction",
+      "black ink animal mark",
+      "warm gold crest geometry",
+      "teal AI circuit accents",
+      "circular spiritual technology emblem"
+    ]
+  },
+  "items": [
+    {
+      "key": "explorer",
+      "id": "01",
+      "name": "AI探險家",
+      "visualAnimal": "狼",
+      "path": "./explorer.png"
+    },
+    {
+      "key": "craftsman",
+      "id": "02",
+      "name": "AI工匠",
+      "visualAnimal": "鷹",
+      "path": "./craftsman.png"
+    },
+    {
+      "key": "guardian",
+      "id": "03",
+      "name": "AI守護者",
+      "visualAnimal": "虎",
+      "path": "./guardian.png"
+    },
+    {
+      "key": "navigator",
+      "id": "04",
+      "name": "AI領航員",
+      "visualAnimal": "狐",
+      "path": "./navigator.png"
+    },
+    {
+      "key": "strategist",
+      "id": "05",
+      "name": "AI策士",
+      "visualAnimal": "龍",
+      "path": "./strategist.png"
+    },
+    {
+      "key": "inventor",
+      "id": "06",
+      "name": "AI發明家",
+      "visualAnimal": "龜",
+      "path": "./inventor.png"
+    },
+    {
+      "key": "trader",
+      "id": "07",
+      "name": "AI交易員",
+      "visualAnimal": "鹿",
+      "path": "./trader.png"
+    },
+    {
+      "key": "mentor",
+      "id": "08",
+      "name": "AI導師",
+      "visualAnimal": "貓頭鷹",
+      "path": "./mentor.png"
+    },
+    {
+      "key": "builder",
+      "id": "09",
+      "name": "AI建造者",
+      "visualAnimal": "錦鯉",
+      "path": "./builder.png"
+    }
+  ],
+  "backups": [
+    "./backup-20260619-locked-before/",
+    "./local-geometric-draft/"
+  ]
+}

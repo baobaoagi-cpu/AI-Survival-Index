@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./data/archetypes.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="./alpha-app.css" rel="stylesheet">
+<style>
+  body { margin:0; background:#050409; font-family:'Noto Sans TC', sans-serif; -webkit-font-smoothing:antialiased; }
+  @keyframes floatA { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(20px,-30px) scale(1.12) } }
+  @keyframes floatB { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(-24px,22px) scale(1.16) } }
+  @keyframes gshift { 0%,100%{ background-position:0% 50% } 50%{ background-position:100% 50% } }
+  @keyframes spinSlow { to { transform:rotate(360deg) } }
+  @keyframes bob { 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
+  @keyframes dotPulse { 0%,100%{ opacity:1; transform:scale(1) } 50%{ opacity:0.4; transform:scale(0.75) } }
+  @keyframes ringPulse { 0%,100%{ opacity:0.4; transform:scale(1) } 50%{ opacity:0.9; transform:scale(1.25) } }
+  @keyframes ctaPulse { 0%,100%{ box-shadow:0 12px 42px oklch(0.6 0.2 300/0.5), 0 0 0 0 oklch(0.7 0.2 300/0.35) } 50%{ box-shadow:0 14px 52px oklch(0.6 0.2 300/0.7), 0 0 0 13px oklch(0.7 0.2 300/0) } }
+  @keyframes sceneIn { 0%{ opacity:0; transform:translateY(14px) } 100%{ opacity:1; transform:translateY(0) } }
+  @keyframes crestLock { 0%{ opacity:0; transform:scale(0.72) rotate(-4deg); filter:blur(8px) } 58%{ opacity:1; transform:scale(1.04) rotate(0deg); filter:blur(0) } 100%{ opacity:1; transform:scale(1) rotate(0deg); filter:blur(0) } }
+  @keyframes crestHalo { 0%{ transform:rotate(0deg) scale(0.96); opacity:0.25 } 50%{ opacity:0.78 } 100%{ transform:rotate(360deg) scale(1.02); opacity:0.35 } }
+  @keyframes lockText { 0%{ opacity:0; transform:translateY(8px) } 100%{ opacity:1; transform:translateY(0) } }
+</style>
+</helmet>
+
+<div class="alpha-app">
+
+  <!-- ambient background -->
+  <div style="position:absolute; inset:0; z-index:0; overflow:hidden;">
+    <div style="position:absolute; inset:0; background:radial-gradient(140% 55% at 50% -8%, oklch(0.5 0.18 290/0.32), transparent 60%);"></div>
+    <div style="position:absolute; width:340px; height:340px; top:-80px; left:-70px; border-radius:50%; background:radial-gradient(circle, oklch(0.6 0.2 290/0.4), transparent 65%); filter:blur(20px); animation:floatA 16s ease-in-out infinite;"></div>
+    <div style="position:absolute; width:320px; height:320px; bottom:120px; right:-90px; border-radius:50%; background:radial-gradient(circle, oklch(0.62 0.2 205/0.36), transparent 65%); filter:blur(22px); animation:floatB 20s ease-in-out infinite;"></div>
+    <div style="position:absolute; inset:0; opacity:0.45; mix-blend-mode:overlay; background-image:radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size:3px 3px;"></div>
+    <div style="position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 50%, transparent 42%, rgba(0,0,0,0.6) 100%);"></div>
+  </div>
+
+  <!-- close -->
+  <div style="position:absolute; top:15px; right:15px; z-index:6; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5); font-size:15px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);">✕</div>
+
+  <!-- ============ PLAY ============ -->
+  <sc-if value="{{isPlay}}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; padding-top:62px;">
+
+      <!-- adventure trail -->
+      <sc-if value="{{isTrail}}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative; padding:0 26px; margin-bottom:30px;">
+          <div style="position:absolute; left:26px; right:26px; top:50%; height:2px; transform:translateY(-50%); background:rgba(255,255,255,0.12); border-radius:2px;"></div>
+          <div style="position:absolute; left:26px; top:50%; height:2px; transform:translateY(-50%); width:{{fillW}}; background:linear-gradient(90deg, oklch(0.7 0.17 255), oklch(0.78 0.16 300)); border-radius:2px; box-shadow:0 0 10px oklch(0.7 0.18 290/0.6);"></div>
+          <div style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+            <sc-for list="{{nodes}}" as="node" hint-placeholder-count="6">
+              <div style="position:relative; display:flex; align-items:center; justify-content:center; width:14px; height:14px;">
+                <span style="width:{{node.size}}; height:{{node.size}}; border-radius:50%; background:{{node.bg}}; border:{{node.border}}; box-shadow:{{node.shadow}};"></span>
+                <sc-if value="{{node.now}}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; width:14px; height:14px; border-radius:50%; border:1.5px solid oklch(0.82 0.16 290); animation:ringPulse 1.7s ease-in-out infinite;"></span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- scene prompt (keyed for transition) -->
+      <div key="{{scene.key}}" style="padding:0 28px; text-align:center; animation:sceneIn 0.5s ease both;">
+        <sc-if value="{{isChapter}}" hint-placeholder-val="{{ true }}">
+          <div style="font-family:'Space Grotesk', sans-serif; font-size:12px; letter-spacing:0.16em; color:oklch(0.8 0.13 290); margin-bottom:14px;">{{scene.chTitle}}</div>
+        </sc-if>
+        <div style="font-size:24px; font-weight:700; line-height:1.55; color:rgba(255,255,255,0.94); text-wrap:pretty;">{{scene.line}}</div>
+      </div>
+
+      <!-- emotional cards -->
+      <div key="{{scene.key}}" style="flex:1; min-height:0; display:flex; flex-direction:column; gap:10px; padding:20px 20px 20px; animation:sceneIn 0.55s ease both;">
+
+        <button onClick="{{pickA}}" style-active="transform:scale(0.985)" style="position:relative; flex:1; min-height:0; width:100%; border-radius:22px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:#0c0a18; cursor:pointer; padding:0; font-family:inherit; color:#fff; text-align:left;">
+          <div style="position:absolute; inset:0; background:repeating-linear-gradient(125deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 17px); opacity:0.55;"></div>
+          <sc-if value="{{isGlow}}" hint-placeholder-val="{{ true }}">
+            <div style="position:absolute; inset:0; background:radial-gradient(120% 90% at 80% 15%, {{scene.a.glow}}, transparent 60%);"></div>
+          </sc-if>
+          <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(7,5,16,0.92) 8%, rgba(7,5,16,0.25) 55%, transparent);"></div>
+            <div style="position:absolute; inset:0; padding:16px; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="display:inline-flex; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:700; color:{{scene.a.color}}; border:1px solid {{scene.a.ring}}; background:rgba(255,255,255,0.04);">{{scene.a.mood}}</span>
+              <span style="font-family:'Space Grotesk', sans-serif; font-size:10px; letter-spacing:0.1em; color:rgba(255,255,255,0.35);">SCENE</span>
+            </div>
+            <div style="height:38%; border-radius:18px; border:1px solid rgba(255,255,255,0.08); background-image:linear-gradient(to top, rgba(7,5,16,0.7), rgba(7,5,16,0.12)), radial-gradient(80% 90% at 65% 20%, {{scene.a.glow}}, transparent 58%); background-size:cover, auto; background-position:center; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:{{scene.a.color}}; font-family:'Space Grotesk', sans-serif; font-size:34px; font-weight:700; opacity:0.95;">{{scene.a.symbol}}</div>
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
+              <div style="font-size:18px; font-weight:700; line-height:1.35; max-width:82%; text-wrap:pretty;">{{scene.a.title}}</div>
+              <span style="font-size:22px; color:{{scene.a.color}}; flex:0 0 auto;">→</span>
+            </div>
+          </div>
+        </button>
+
+        <button onClick="{{pickB}}" style-active="transform:scale(0.985)" style="position:relative; flex:1; min-height:0; width:100%; border-radius:22px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:#0c0a18; cursor:pointer; padding:0; font-family:inherit; color:#fff; text-align:left;">
+          <div style="position:absolute; inset:0; background:repeating-linear-gradient(125deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 17px); opacity:0.55;"></div>
+          <sc-if value="{{isGlow}}" hint-placeholder-val="{{ true }}">
+            <div style="position:absolute; inset:0; background:radial-gradient(120% 90% at 80% 15%, {{scene.b.glow}}, transparent 60%);"></div>
+          </sc-if>
+          <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(7,5,16,0.92) 8%, rgba(7,5,16,0.25) 55%, transparent);"></div>
+            <div style="position:absolute; inset:0; padding:16px; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="display:inline-flex; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:700; color:{{scene.b.color}}; border:1px solid {{scene.b.ring}}; background:rgba(255,255,255,0.04);">{{scene.b.mood}}</span>
+              <span style="font-family:'Space Grotesk', sans-serif; font-size:10px; letter-spacing:0.1em; color:rgba(255,255,255,0.35);">SCENE</span>
+            </div>
+            <div style="height:38%; border-radius:18px; border:1px solid rgba(255,255,255,0.08); background-image:linear-gradient(to top, rgba(7,5,16,0.7), rgba(7,5,16,0.12)), radial-gradient(80% 90% at 65% 20%, {{scene.b.glow}}, transparent 58%); background-size:cover, auto; background-position:center; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:{{scene.b.color}}; font-family:'Space Grotesk', sans-serif; font-size:34px; font-weight:700; opacity:0.95;">{{scene.b.symbol}}</div>
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
+              <div style="font-size:18px; font-weight:700; line-height:1.35; max-width:82%; text-wrap:pretty;">{{scene.b.title}}</div>
+              <span style="font-size:22px; color:{{scene.b.color}}; flex:0 0 auto;">→</span>
+            </div>
+          </div>
+        </button>
+
+        <button onClick="{{pickC}}" style-active="transform:scale(0.985)" style="position:relative; flex:1; min-height:0; width:100%; border-radius:22px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:#0c0a18; cursor:pointer; padding:0; font-family:inherit; color:#fff; text-align:left;">
+          <div style="position:absolute; inset:0; background:repeating-linear-gradient(125deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 17px); opacity:0.55;"></div>
+          <sc-if value="{{isGlow}}" hint-placeholder-val="{{ true }}">
+            <div style="position:absolute; inset:0; background:radial-gradient(120% 90% at 80% 15%, {{scene.c.glow}}, transparent 60%);"></div>
+          </sc-if>
+          <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(7,5,16,0.92) 8%, rgba(7,5,16,0.25) 55%, transparent);"></div>
+          <div style="position:absolute; inset:0; padding:16px; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="display:inline-flex; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:700; color:{{scene.c.color}}; border:1px solid {{scene.c.ring}}; background:rgba(255,255,255,0.04);">{{scene.c.mood}}</span>
+              <span style="font-family:'Space Grotesk', sans-serif; font-size:10px; letter-spacing:0.1em; color:rgba(255,255,255,0.35);">SCENE</span>
+            </div>
+            <div style="height:38%; border-radius:18px; border:1px solid rgba(255,255,255,0.08); background-image:linear-gradient(to top, rgba(7,5,16,0.7), rgba(7,5,16,0.12)), radial-gradient(80% 90% at 65% 20%, {{scene.c.glow}}, transparent 58%); background-size:cover, auto; background-position:center; background-repeat:no-repeat; display:flex; align-items:center; justify-content:center; color:{{scene.c.color}}; font-family:'Space Grotesk', sans-serif; font-size:34px; font-weight:700; opacity:0.95;">{{scene.c.symbol}}</div>
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
+              <div style="font-size:18px; font-weight:700; line-height:1.35; max-width:82%; text-wrap:pretty;">{{scene.c.title}}</div>
+              <span style="font-size:22px; color:{{scene.c.color}}; flex:0 0 auto;">→</span>
+            </div>
+          </div>
+        </button>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ EVOLVING ============ -->
+  <sc-if value="{{isEvolving}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; padding:24px; text-align:center;">
+      <div style="position:relative; width:92px; height:92px;">
+        <span style="position:absolute; inset:0; border-radius:50%; border:2px solid rgba(255,255,255,0.12); border-top-color:oklch(0.8 0.16 290); box-shadow:0 0 30px oklch(0.7 0.18 290/0.5); animation:spinSlow 0.9s linear infinite;"></span>
+        <span style="position:absolute; inset:14px; border-radius:50%; border:1px dashed rgba(255,255,255,0.25); animation:spinSlow 6s linear infinite reverse;"></span>
+      </div>
+      <div style="font-size:18px; font-weight:700; color:rgba(255,255,255,0.92);">正在演化你的原型…</div>
+      <div style="font-family:'Space Grotesk', sans-serif; font-size:14px; letter-spacing:0.18em; color:oklch(0.78 0.13 290);">{{evolveName}}</div>
+    </div>
+  </sc-if>
+
+  <!-- ============ CREST REVEAL ============ -->
+  <sc-if value="{{isReveal}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:28px; text-align:center; background:radial-gradient(90% 55% at 50% 38%, {{result.soft}}, transparent 62%);">
+      <div style="font-family:'Space Grotesk', sans-serif; font-size:12px; letter-spacing:0.22em; color:oklch(0.82 0.13 88); text-transform:uppercase; animation:lockText 0.55s ease both;">CREST LOCKED</div>
+      <div style="margin-top:10px; font-size:14px; color:rgba(255,255,255,0.58); letter-spacing:0.05em; animation:lockText 0.55s ease 0.08s both;">你的 AI 家徽正在成形</div>
+
+      <div style="position:relative; width:236px; height:236px; margin:28px 0 24px; display:flex; align-items:center; justify-content:center;">
+        <span style="position:absolute; inset:8px; border-radius:50%; border:1px solid rgba(198,154,76,0.42); border-left-color:rgba(255,255,255,0.04); border-bottom-color:rgba(255,255,255,0.04); animation:crestHalo 1.7s linear infinite;"></span>
+        <span style="position:absolute; inset:24px; border-radius:50%; border:1px dashed {{result.ring}}; opacity:0.55; animation:spinSlow 18s linear infinite reverse;"></span>
+        <div style="position:relative; width:196px; height:196px; border-radius:32px; background:linear-gradient(145deg, #fffdf7, #efe8d8); border:1px solid rgba(198,154,76,0.46); box-shadow:0 22px 58px rgba(0,0,0,0.42), 0 0 42px {{result.glow}}; display:flex; align-items:center; justify-content:center; padding:16px; animation:crestLock 0.82s cubic-bezier(.18,.9,.22,1) both;">
+          <img src="{{result.crestPath}}" alt="{{result.name}} 家徽" style="width:100%; height:100%; object-fit:contain; display:block;">
+        </div>
+      </div>
+
+      <div style="font-size:32px; font-weight:900; line-height:1.18; background:{{result.grad}}; background-size:200% 200%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:gshift 8s ease-in-out infinite, lockText 0.55s ease 0.26s both;">{{result.name}}</div>
+      <div style="font-size:15px; color:rgba(255,255,255,0.66); line-height:1.7; margin-top:12px; max-width:280px; text-wrap:pretty; animation:lockText 0.55s ease 0.34s both;">{{result.manifesto}}</div>
+      <div style="margin-top:28px; font-size:12px; letter-spacing:0.14em; color:rgba(255,255,255,0.38); animation:dotPulse 1.4s ease-in-out infinite;">正在開啟演化結果</div>
+    </div>
+  </sc-if>
+
+  <!-- scene-cut flash overlay -->
+  <div style="position:absolute; inset:0; z-index:40; pointer-events:{{flashPE}}; opacity:{{flashOpacity}}; transition:opacity 0.32s ease; background:radial-gradient(120% 80% at 50% 40%, oklch(0.3 0.14 290/0.95), #050409 75%);"></div>
+
+  <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; left:24px; right:24px; bottom:28px; z-index:50; padding:15px 18px; border-radius:18px; border:1px solid rgba(255,255,255,0.16); background:rgba(12,10,24,0.94); box-shadow:0 14px 36px rgba(0,0,0,0.45); backdrop-filter:blur(10px); text-align:center; font-size:14px; line-height:1.55; color:rgba(255,255,255,0.92);">LINE 分享功能將於 LIFF 版本開啟</div>
+  </sc-if>
+
+</div>
+</x-dc>
+<div id="alpha-fallback-quiz" style="position:fixed; inset:0; z-index:9999; display:flex; justify-content:center; background:#050409; color:#fff; font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;">
+  <div style="position:relative; width:100%; max-width:390px; height:100dvh; overflow:hidden; background:#070510;">
+    <div style="position:absolute; inset:0; background:radial-gradient(140% 60% at 50% -10%, rgba(153,96,255,0.3), transparent 60%), radial-gradient(90% 62% at 85% 70%, rgba(38,190,190,0.22), transparent 62%);"></div>
+    <div style="position:absolute; inset:0; opacity:0.45; background-image:radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size:3px 3px;"></div>
+    <div id="fallback-quiz-stage" style="position:relative; height:100%; display:flex; flex-direction:column; padding:62px 20px 24px;"></div>
+  </div>
+</div>
+<script>
+window.AI_SURVIVAL_QUIZ_API = (function () {
+  const scenarioIds = [
+    'scene-01-message',
+    'scene-02-system-change',
+    'scene-03-risk-opportunity',
+    'scene-04-friend-anxiety',
+    'scene-05-blank-canvas',
+    'scene-06-future-self',
+  ];
+  const defaultApiBase = 'http://127.0.0.1:8080';
+
+  function apiBase() {
+    return (
+      localStorage.getItem('AI_SURVIVAL_API_BASE_URL') ||
+      window.AI_SURVIVAL_API_BASE_URL ||
+      defaultApiBase
+    ).replace(/\/$/, '');
+  }
+
+  function localLineUserId() {
+    const explicit = localStorage.getItem('AI_SURVIVAL_LINE_USER_ID');
+    if (explicit) return explicit;
+    const generated = 'local-alpha-' + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem('AI_SURVIVAL_LINE_USER_ID', generated);
+    return generated;
+  }
+
+  function toApiAnswers(uiAnswers, scenarios) {
+    return uiAnswers.map((answer, index) => {
+      const stepIndex = Math.max(0, (answer.step || index + 1) - 1);
+      const scenario = scenarios[stepIndex];
+      const optionId =
+        answer.optionId ||
+        ['a', 'b', 'c'].find((id) => scenario?.[id]?.key === answer.selectedKey) ||
+        'a';
+      return {
+        scenarioId: answer.scenarioId || scenarioIds[stepIndex],
+        optionId,
+      };
+    });
+  }
+
+  async function score(uiAnswers, scenarios) {
+    const response = await fetch(apiBase() + '/quiz/score', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Line-User-Id': localLineUserId(),
+        'X-Line-Display-Name': localStorage.getItem('AI_SURVIVAL_LINE_DISPLAY_NAME') || 'Local Alpha User',
+      },
+      body: JSON.stringify({ answers: toApiAnswers(uiAnswers, scenarios) }),
+    });
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => '');
+      throw new Error('Quiz API failed: ' + response.status + ' ' + message);
+    }
+
+    return response.json();
+  }
+
+  function saveAlphaResult({ uiAnswers, tally, resolved, serverResult, apiError, scenarios }) {
+    const payload = {
+      answers: uiAnswers,
+      apiAnswers: serverResult?.answers || toApiAnswers(uiAnswers, scenarios || []),
+      archetypeScores: serverResult?.archetypeScores || tally,
+      primaryType: serverResult?.primaryType || resolved.primaryType,
+      secondaryType: serverResult?.secondaryType || resolved.secondaryType,
+      evolutionType: serverResult?.evolutionType || resolved.evolutionType,
+      persisted: Boolean(serverResult?.persisted),
+      sessionId: serverResult?.sessionId || null,
+      profileId: serverResult?.profileId || null,
+      apiBase: apiBase(),
+      apiError: apiError ? String(apiError.message || apiError) : null,
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem('aiSurvivalAlphaResult', JSON.stringify(payload));
+    localStorage.setItem('answers', JSON.stringify(payload.answers));
+    localStorage.setItem('archetypeScores', JSON.stringify(payload.archetypeScores));
+    localStorage.setItem('primaryType', payload.primaryType);
+    localStorage.setItem('secondaryType', payload.secondaryType);
+    localStorage.setItem('evolutionType', payload.evolutionType);
+    localStorage.setItem('quizPersisted', String(payload.persisted));
+    if (payload.sessionId) localStorage.setItem('quizSessionId', payload.sessionId);
+    if (payload.profileId) localStorage.setItem('profileId', payload.profileId);
+    return payload;
+  }
+
+  return { score, saveAlphaResult, toApiAnswers, apiBase };
+})();
+</script>
+<script>
+(function () {
+  const arch = window.AI_SURVIVAL_ARCHETYPE_MAP || {
+    explorer: { n: '01', name: 'AI探險家', hue: 288, symbol: '◇', manifesto: '你總是第一個走進未知的人。', line: '你往沒有地圖的地方去，因為那裡才有風景。' },
+    craftsman: { n: '02', name: 'AI工匠', hue: 255, symbol: '◆', manifesto: '你把工具磨成自己的武器。', line: '你相信真正的價值，來自反覆打磨。' },
+    guardian: { n: '03', name: 'AI守護者', hue: 210, symbol: '●', manifesto: '你在變動裡守住重要的人。', line: '你不是抗拒未來，而是不想讓重要的人被浪潮丟下。' },
+    navigator: { n: '04', name: 'AI領航員', hue: 170, symbol: '▲', manifesto: '你能帶大家穿過迷霧。', line: '你看到方向，也願意帶人一起前進。' },
+    strategist: { n: '05', name: 'AI策士', hue: 135, symbol: '◎', manifesto: '你總是先看見局勢背後的規則。', line: '你不急著行動，你先判斷勢能。' },
+    inventor: { n: '06', name: 'AI發明家', hue: 95, symbol: '✦', manifesto: '你讓不存在的東西開始存在。', line: '你不是使用未來，你會創造未來。' },
+    trader: { n: '07', name: 'AI交易員', hue: 55, symbol: '◈', manifesto: '你在不確定裡聞到機會。', line: '你看見別人忽略的價差與時機。' },
+    mentor: { n: '08', name: 'AI導師', hue: 28, symbol: '◉', manifesto: '你讓身邊的人也一起變強。', line: '你真正的能力，是把理解傳給別人。' },
+    builder: { n: '09', name: 'AI建造者', hue: 332, symbol: '▣', manifesto: '你打造能留下來的系統。', line: '你不只完成一件事，你會留下結構。' },
+  };
+  const scenarios = [
+    { chapter: '一', chTitle: 'AI 來信', line: 'AI 說：明天的工作已完成。', a: { mood: '好奇', title: '我想做它想不到的事。', key: 'explorer' }, b: { mood: '打磨', title: '我要親手把它做好。', key: 'craftsman' }, c: { mood: '影響', title: '我想知道它改變了誰。', key: 'guardian' } },
+    { chapter: '二', chTitle: '系統上線', line: '新系統上線，所有人看著你。', a: { mood: '帶領', title: '我來帶大家往前走。', key: 'navigator' }, b: { mood: '拆解', title: '先拆開，看懂規則。', key: 'strategist' }, c: { mood: '試作', title: '我先做一版可用流程。', key: 'craftsman' } },
+    { chapter: '三', chTitle: '新機會', line: '高風險機會突然出現。', a: { mood: '冒險', title: '先試，答案會出現。', key: 'trader' }, b: { mood: '沉著', title: '先算清楚再出手。', key: 'strategist' }, c: { mood: '轉化', title: '我把風險變成實驗。', key: 'inventor' } },
+    { chapter: '四', chTitle: '好友求救', line: '好友問：我會被取代嗎？', a: { mood: '傳授', title: '我教你讓 AI 幫忙。', key: 'mentor' }, b: { mood: '守護', title: '別怕，我陪你想辦法。', key: 'guardian' }, c: { mood: '方向', title: '我整理下一步路線。', key: 'navigator' } },
+    { chapter: '五', chTitle: '空白畫布', line: '一張空白畫布在你面前。', a: { mood: '創造', title: '做沒人做過的東西。', key: 'inventor' }, b: { mood: '築基', title: '先打造可長久的系統。', key: 'builder' }, c: { mood: '交換', title: '先找可流動的價值。', key: 'trader' } },
+    { chapter: '六', chTitle: '未來回望', line: '十年後的你看著現在。', a: { mood: '勇敢', title: '我希望當時夠勇敢。', key: 'explorer' }, b: { mood: '留下', title: '我希望留下重要結構。', key: 'builder' }, c: { mood: '傳承', title: '我希望帶出更多人。', key: 'mentor' } },
+  ];
+  const stage = document.getElementById('fallback-quiz-stage');
+  const makeOptionOrders = () => scenarios.map(() => shuffle(['a', 'b', 'c']));
+  const state = { step: 0, tally: {}, answers: [], optionOrders: makeOptionOrders() };
+  const tint = (key, alpha = 1) => `oklch(0.78 0.16 ${arch[key].hue} / ${alpha})`;
+  const crestPath = (key) => arch[key].imagePaths?.portrait || `./assets/archetypes/${key}.png`;
+  const escapeHtml = (text) => String(text || '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+
+  function shuffle(items) {
+    const output = [...items];
+    for (let i = output.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [output[i], output[j]] = [output[j], output[i]];
+    }
+    return output;
+  }
+
+  function resolveResult(tally) {
+    const keys = Object.keys(arch);
+    const ranked = keys.map((key, index) => ({ key, score: tally[key] || 0, index })).sort((a, b) => b.score - a.score || a.index - b.index);
+    const primaryType = ranked[0]?.key || 'explorer';
+    const secondaryType = ranked.find((t) => t.key !== primaryType && t.score > 0)?.key || keys.find((key) => key !== primaryType) || 'navigator';
+    const evolutionMap = { explorer: 'inventor', craftsman: 'builder', guardian: 'mentor', navigator: 'strategist', strategist: 'navigator', inventor: 'explorer', trader: 'strategist', mentor: 'navigator', builder: 'guardian' };
+    const preferred = evolutionMap[primaryType];
+    const evolutionType = preferred && preferred !== primaryType && preferred !== secondaryType
+      ? preferred
+      : (ranked.find((t) => ![primaryType, secondaryType].includes(t.key) && t.score > 0)?.key || keys.find((key) => ![primaryType, secondaryType].includes(key)) || 'navigator');
+    return { primaryType, secondaryType, evolutionType };
+  }
+
+  function saveResult(resolved, serverResult, apiError) {
+    return window.AI_SURVIVAL_QUIZ_API.saveAlphaResult({
+      uiAnswers: state.answers,
+      tally: state.tally,
+      resolved,
+      serverResult,
+      apiError,
+      scenarios,
+    });
+  }
+
+  function renderSync() {
+    stage.innerHTML = `
+      <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px;">
+        <div style="position:relative; width:92px; height:92px;">
+          <span style="position:absolute; inset:0; border-radius:50%; border:2px solid rgba(255,255,255,0.12); border-top-color:#d6ae5b; box-shadow:0 0 30px rgba(214,174,91,0.45); animation:spinSlow 0.9s linear infinite;"></span>
+          <span style="position:absolute; inset:14px; border-radius:50%; border:1px dashed rgba(255,255,255,0.25); animation:spinSlow 6s linear infinite reverse;"></span>
+        </div>
+        <div style="margin-top:26px; font-size:18px; font-weight:900; color:rgba(255,255,255,0.92);">正在寫入你的 AI 原型</div>
+        <div style="margin-top:10px; font-size:13px; color:rgba(255,255,255,0.48); line-height:1.7;">同步完成後會鎖定家徽</div>
+      </div>
+    `;
+  }
+
+  async function finishQuiz() {
+    const resolved = resolveResult(state.tally);
+    renderSync();
+    try {
+      const serverResult = await window.AI_SURVIVAL_QUIZ_API.score(state.answers, scenarios);
+      const payload = saveResult(resolved, serverResult, null);
+      renderLock(payload.primaryType, payload.persisted);
+    } catch (error) {
+      console.warn('Quiz API unavailable, using local fallback result.', error);
+      const payload = saveResult(resolved, null, error);
+      renderLock(payload.primaryType, payload.persisted);
+    }
+  }
+
+  function renderQuestion() {
+    const sc = scenarios[state.step];
+    const optionOrder = state.optionOrders[state.step] || ['a', 'b', 'c'];
+    const pct = Math.round((state.step / (scenarios.length - 1)) * 100);
+    stage.innerHTML = `
+      <div style="position:relative; height:2px; border-radius:2px; background:rgba(255,255,255,0.13); overflow:hidden;">
+        <div style="width:${pct}%; height:100%; border-radius:2px; background:linear-gradient(90deg,#64c8ff,#d56bff); box-shadow:0 0 12px rgba(170,110,255,0.7);"></div>
+      </div>
+      <div style="text-align:center; padding:26px 8px 16px;">
+        <div style="font-family:Arial,sans-serif; font-size:12px; letter-spacing:0.16em; color:#cba6ff; margin-bottom:14px;">${escapeHtml(sc.chTitle)}</div>
+        <div style="font-size:22px; font-weight:900; line-height:1.45; color:rgba(255,255,255,0.94);">${escapeHtml(sc.line)}</div>
+      </div>
+      <div style="flex:1; min-height:0; display:flex; flex-direction:column; gap:10px; padding-top:6px;">
+        ${optionOrder.map((optionId) => renderOption(sc[optionId], optionId)).join('')}
+      </div>
+    `;
+    stage.querySelectorAll('[data-pick]').forEach((btn) => {
+      btn.addEventListener('click', () => pick(btn.getAttribute('data-pick')));
+    });
+  }
+
+  function renderOption(option, optionId) {
+    const a = arch[option.key];
+    return `
+      <button data-pick="${option.key}" data-option-id="${optionId}" style="position:relative; flex:1; min-height:0; width:100%; border-radius:22px; overflow:hidden; border:1px solid rgba(255,255,255,0.11); background:#0c0a18; cursor:pointer; padding:16px; font-family:inherit; color:#fff; text-align:left;">
+        <div style="position:absolute; inset:0; background:radial-gradient(90% 80% at 70% 10%, ${tint(option.key, 0.42)}, transparent 62%);"></div>
+        <div style="position:relative; height:36%; border-radius:16px; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-family:Arial,sans-serif; font-size:32px; font-weight:900; color:${tint(option.key, 1)}; background:linear-gradient(to top, rgba(7,5,16,0.7), rgba(7,5,16,0.12));">${escapeHtml(a.symbol)}</div>
+        <div style="position:relative; display:flex; align-items:center; justify-content:space-between; margin-top:12px; gap:12px;">
+          <div>
+            <span style="display:inline-flex; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:800; color:${tint(option.key, 1)}; border:1px solid ${tint(option.key, 0.55)}; background:rgba(255,255,255,0.04);">${escapeHtml(option.mood)}</span>
+            <div style="font-size:18px; font-weight:900; line-height:1.32; margin-top:8px;">${escapeHtml(option.title)}</div>
+          </div>
+          <span style="font-size:22px; color:${tint(option.key, 1)};">→</span>
+        </div>
+      </button>
+    `;
+  }
+
+  function pick(key) {
+    const sc = scenarios[state.step];
+    const option = [sc.a, sc.b, sc.c].find((item) => item.key === key) || sc.a;
+    state.tally[key] = (state.tally[key] || 0) + 1;
+    const optionId = ['a', 'b', 'c'].find((id) => sc[id]?.key === key) || 'a';
+    state.answers.push({
+      step: state.step + 1,
+      scenarioId: window.AI_SURVIVAL_QUIZ_API.toApiAnswers([{ step: state.step + 1, optionId }], scenarios)[0].scenarioId,
+      optionId,
+      chapter: sc.chapter,
+      question: sc.line,
+      selectedKey: key,
+      selectedType: arch[key].name,
+      mood: option.mood,
+      title: option.title,
+    });
+    if (state.step < scenarios.length - 1) {
+      state.step += 1;
+      renderQuestion();
+      return;
+    }
+    finishQuiz();
+  }
+
+  function renderLock(key, persisted) {
+    const a = arch[key];
+    stage.innerHTML = `
+      <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+        <div style="font-family:Arial,sans-serif; font-size:12px; letter-spacing:0.22em; color:#d7ad62;">CREST LOCKED</div>
+        <div style="font-size:14px; color:rgba(255,255,255,0.58); letter-spacing:0.05em; margin-top:10px;">你的 AI 家徽正在成形</div>
+        <div style="position:relative; width:220px; height:220px; margin:30px 0 22px; display:flex; align-items:center; justify-content:center;">
+          <div style="width:188px; height:188px; border-radius:32px; background:linear-gradient(145deg,#fffdf7,#efe8d8); border:1px solid rgba(198,154,76,0.46); box-shadow:0 22px 58px rgba(0,0,0,0.42), 0 0 42px ${tint(key, 0.42)}; padding:14px;">
+            <img src="${crestPath(key)}" alt="${escapeHtml(a.name)} 家徽" style="width:100%; height:100%; object-fit:contain; display:block;">
+          </div>
+        </div>
+        <div style="font-size:32px; font-weight:900; line-height:1.18;">${escapeHtml(a.name)}</div>
+        <div style="font-size:15px; color:rgba(255,255,255,0.66); line-height:1.7; margin-top:12px; max-width:280px;">${escapeHtml(a.manifesto || a.line)}</div>
+        <div style="margin-top:28px; font-size:12px; letter-spacing:0.14em; color:rgba(255,255,255,0.38);">${persisted ? '已同步，正在開啟演化結果' : '本機結果已保存，正在開啟演化結果'}</div>
+      </div>
+    `;
+    setTimeout(() => { window.location.href = './AI原型演化結果.dc.html'; }, 1700);
+  }
+
+  renderQuestion();
+})();
+</script>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 390, &quot;height&quot;: 844 },
+  &quot;showTrail&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;showChapterLabel&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;cardGlow&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; }
+}">
+class Component extends DCLogic {
+  state = { step: 0, phase: 'play', tally: {}, answers: [], flash: false, evolveIdx: 0, toast: false, lockedKey: null };
+
+  // TODO: remove fallback once every page fully consumes data/archetypes.js.
+  arch = window.AI_SURVIVAL_ARCHETYPE_MAP || {
+    explorer:   { n: '01', name: 'AI探險家', hue: 288, symbol: '◇', line: '你往沒有地圖的地方去，因為那裡才有風景。' },
+    craftsman:  { n: '02', name: 'AI工匠',   hue: 255, symbol: '◆', line: '你相信真正的價值，來自反覆打磨。' },
+    guardian:   { n: '03', name: 'AI守護者', hue: 210, symbol: '●', line: '你不是抗拒未來，而是不想讓重要的人被浪潮丟下。' },
+    navigator:  { n: '04', name: 'AI領航員', hue: 170, symbol: '▲', line: '你看到方向，也願意帶人一起前進。' },
+    strategist: { n: '05', name: 'AI策士',   hue: 135, symbol: '◎', line: '你不急著行動，你先判斷勢能。' },
+    inventor:   { n: '06', name: 'AI發明家', hue: 95,  symbol: '✦', line: '你不是使用未來，你會創造未來。' },
+    trader:     { n: '07', name: 'AI交易員', hue: 55,  symbol: '◈', line: '你看見別人忽略的價差與時機。' },
+    mentor:     { n: '08', name: 'AI導師',   hue: 28,  symbol: '◉', line: '你真正的能力，是把理解傳給別人。' },
+    builder:    { n: '09', name: 'AI建造者', hue: 332, symbol: '▣', line: '你不只完成一件事，你會留下結構。' },
+  };
+
+  scenarios = [
+    { chapter: '一', chTitle: 'AI 來信', line: 'AI 說：明天的工作已完成。', imagePath: './assets/scenes/scene-01-message.png',
+      a: { mood: '好奇', title: '我想做它想不到的事。', key: 'explorer',  hue: 288 },
+      b: { mood: '打磨', title: '我要親手把它做好。',     key: 'craftsman', hue: 255 },
+      c: { mood: '影響', title: '我想知道它改變了誰。',   key: 'guardian',  hue: 210 } },
+    { chapter: '二', chTitle: '系統上線', line: '新系統上線，所有人看著你。', imagePath: './assets/scenes/scene-02-system-change.png',
+      a: { mood: '帶領', title: '我來帶大家往前走。',       key: 'navigator',  hue: 170 },
+      b: { mood: '拆解', title: '先拆開，看懂規則。',       key: 'strategist', hue: 135 },
+      c: { mood: '試作', title: '我先做一版可用流程。',     key: 'craftsman',  hue: 255 } },
+    { chapter: '三', chTitle: '新機會', line: '高風險機會突然出現。', imagePath: './assets/scenes/scene-03-risk-opportunity.png',
+      a: { mood: '冒險', title: '先試，答案會出現。',       key: 'trader',     hue: 55  },
+      b: { mood: '沉著', title: '先算清楚再出手。',         key: 'strategist', hue: 135 },
+      c: { mood: '轉化', title: '我把風險變成實驗。',       key: 'inventor',   hue: 95  } },
+    { chapter: '四', chTitle: '好友求救', line: '好友問：我會被取代嗎？', imagePath: './assets/scenes/scene-04-friend-anxiety.png',
+      a: { mood: '傳授', title: '我教你讓 AI 幫忙。',       key: 'mentor',     hue: 28  },
+      b: { mood: '守護', title: '別怕，我陪你想辦法。',     key: 'guardian',   hue: 210 },
+      c: { mood: '方向', title: '我整理下一步路線。',       key: 'navigator',  hue: 170 } },
+    { chapter: '五', chTitle: '空白畫布', line: '一張空白畫布在你面前。', imagePath: './assets/scenes/scene-05-blank-canvas.png',
+      a: { mood: '創造', title: '做沒人做過的東西。',       key: 'inventor',   hue: 95  },
+      b: { mood: '築基', title: '先打造可長久的系統。',     key: 'builder',    hue: 332 },
+      c: { mood: '交換', title: '先找可流動的價值。',       key: 'trader',     hue: 55  } },
+    { chapter: '六', chTitle: '未來回望', line: '十年後的你看著現在。', imagePath: './assets/scenes/scene-06-future-self.png',
+      a: { mood: '勇敢', title: '我希望當時夠勇敢。',       key: 'explorer',   hue: 288 },
+      b: { mood: '留下', title: '我希望留下重要結構。',     key: 'builder',    hue: 332 },
+      c: { mood: '傳承', title: '我希望帶出更多人。',       key: 'mentor',     hue: 28  } },
+  ];
+
+  optionOrders = this.makeOptionOrders();
+
+  componentWillUnmount() {
+    clearTimeout(this._adv); clearTimeout(this._rev); clearTimeout(this._go); clearTimeout(this._toast); clearInterval(this._cyc);
+  }
+
+  makeOptionOrders() {
+    return this.scenarios.map(() => this.shuffle(['a', 'b', 'c']));
+  }
+
+  shuffle(items) {
+    const output = [...items];
+    for (let i = output.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [output[i], output[j]] = [output[j], output[i]];
+    }
+    return output;
+  }
+
+  select(key) {
+    const last = this.scenarios.length - 1;
+    const cur = this.state.step;
+    const sc = this.scenarios[cur];
+    const picked = [sc.a, sc.b, sc.c].find(item => item.key === key) || sc.a;
+    const optionId = ['a', 'b', 'c'].find(id => sc[id]?.key === key) || 'a';
+    const tally = { ...this.state.tally, [key]: (this.state.tally[key] || 0) + 1 };
+    const answers = [
+      ...this.state.answers,
+      {
+        step: cur + 1,
+        scenarioId: window.AI_SURVIVAL_QUIZ_API.toApiAnswers([{ step: cur + 1, optionId }], this.scenarios)[0].scenarioId,
+        optionId,
+        chapter: sc.chapter,
+        question: sc.line,
+        selectedKey: key,
+        selectedType: this.arch[key].name,
+        mood: picked.mood,
+        title: picked.title
+      }
+    ];
+    this.setState({ tally, answers, flash: true });
+    clearTimeout(this._adv);
+    this._adv = setTimeout(() => {
+      if (cur < last) this.setState({ step: cur + 1, flash: false });
+      else {
+        this.setState({ phase: 'evolving', flash: false });
+        this.finishQuiz(tally, answers);
+      }
+    }, 340);
+  }
+
+  rankedTypes(tally) {
+    const order = Object.keys(this.arch);
+    return order
+      .map((key, index) => ({ key, score: tally[key] || 0, index }))
+      .sort((a, b) => b.score - a.score || a.index - b.index);
+  }
+
+  resolveResult(tally) {
+    const ranked = this.rankedTypes(tally);
+    const primaryType = ranked[0]?.key || 'explorer';
+    const secondaryType = ranked.find(t => t.key !== primaryType && t.score > 0)?.key || this.nextUnused(primaryType, []);
+    const evolutionMap = {
+      explorer: 'inventor',
+      craftsman: 'builder',
+      guardian: 'mentor',
+      navigator: 'strategist',
+      strategist: 'navigator',
+      inventor: 'explorer',
+      trader: 'strategist',
+      mentor: 'navigator',
+      builder: 'guardian',
+    };
+    const preferredEvolution = evolutionMap[primaryType];
+    const evolutionType = preferredEvolution && preferredEvolution !== primaryType && preferredEvolution !== secondaryType
+      ? preferredEvolution
+      : (ranked.find(t => ![primaryType, secondaryType].includes(t.key) && t.score > 0)?.key || this.nextUnused(primaryType, [secondaryType]));
+    return { primaryType, secondaryType, evolutionType };
+  }
+
+  nextUnused(primaryType, used) {
+    return Object.keys(this.arch).find(key => key !== primaryType && !used.includes(key)) || 'navigator';
+  }
+
+  async finishQuiz(tally, answers) {
+    const resolved = this.resolveResult(tally);
+    try {
+      const serverResult = await window.AI_SURVIVAL_QUIZ_API.score(answers, this.scenarios);
+      const payload = this.saveResult(tally, answers, resolved, serverResult, null);
+      this.setState({ lockedKey: payload.primaryType });
+      this.startEvolving(payload.primaryType);
+    } catch (error) {
+      console.warn('Quiz API unavailable, using local fallback result.', error);
+      const payload = this.saveResult(tally, answers, resolved, null, error);
+      this.setState({ lockedKey: payload.primaryType });
+      this.startEvolving(payload.primaryType);
+    }
+  }
+
+  saveResult(tally, answers, resolved = this.resolveResult(tally), serverResult = null, apiError = null) {
+    const payload = window.AI_SURVIVAL_QUIZ_API.saveAlphaResult({
+      answers,
+      uiAnswers: answers,
+      tally,
+      resolved,
+      serverResult,
+      apiError,
+      scenarios: this.scenarios,
+    });
+    return payload;
+  }
+
+  startEvolving(lockedKey) {
+    const total = Object.keys(this.arch).length;
+    let i = 0;
+    clearInterval(this._cyc);
+    this._cyc = setInterval(() => { i = (i + 1) % total; this.setState({ evolveIdx: i }); }, 120);
+    clearTimeout(this._rev);
+    clearTimeout(this._go);
+    this._rev = setTimeout(() => {
+      clearInterval(this._cyc);
+      this.setState({ phase: 'reveal', lockedKey });
+      this._go = setTimeout(() => { window.location.href = './AI原型演化結果.dc.html'; }, 1650);
+    }, 880);
+  }
+
+  renderVals() {
+    const tint = (hue) => ({
+      color: `oklch(0.78 0.16 ${hue})`,
+      ring:  `oklch(0.78 0.16 ${hue} / 0.6)`,
+      glow:  `oklch(0.7 0.18 ${hue} / 0.42)`,
+      soft:  `oklch(0.78 0.16 ${hue} / 0.14)`,
+      grad:  `linear-gradient(110deg, oklch(0.84 0.15 ${hue}), oklch(0.85 0.13 ${(hue + 45) % 360}))`,
+    });
+
+    const step = this.state.step;
+    const total = this.scenarios.length;
+    const sc = this.scenarios[step];
+    const optionOrder = this.optionOrders[step] || ['a', 'b', 'c'];
+    const opt = (optionId) => {
+      const o = sc[optionId];
+      return { optionId, key: o.key, mood: o.mood, title: o.title, imagePath: sc.imagePath, symbol: this.arch[o.key].symbol, ...tint(o.hue) };
+    };
+    const scene = {
+      key: 's' + step,
+      chapter: sc.chapter,
+      chTitle: sc.chTitle,
+      line: sc.line,
+      imagePath: sc.imagePath,
+      a: opt(optionOrder[0]),
+      b: opt(optionOrder[1]),
+      c: opt(optionOrder[2])
+    };
+
+    const nodes = this.scenarios.map((_, i) => {
+      const done = i < step, now = i === step;
+      return {
+        now,
+        size: now ? '12px' : '8px',
+        bg: done ? 'oklch(0.8 0.16 285)' : (now ? 'oklch(0.84 0.16 290)' : 'transparent'),
+        border: (done || now) ? 'none' : '1px solid rgba(255,255,255,0.28)',
+        shadow: now ? '0 0 12px oklch(0.78 0.18 290/0.9)' : (done ? '0 0 8px oklch(0.7 0.16 285/0.5)' : 'none'),
+      };
+    });
+
+    const names = Object.values(this.arch).map(a => a.name);
+
+    const key = this.state.lockedKey || this.resolveResult(this.state.tally).primaryType;
+    const r = this.arch[key];
+    const result = {
+      n: r.n,
+      name: r.name,
+      line: r.line,
+      manifesto: r.manifesto || r.line,
+      crestPath: r.imagePaths?.portrait || `./assets/archetypes/${key}.png`,
+      ...tint(r.hue)
+    };
+
+    return {
+      isPlay: this.state.phase === 'play',
+      isEvolving: this.state.phase === 'evolving',
+      isReveal: this.state.phase === 'reveal',
+      isTrail: this.props.showTrail ?? true,
+      isChapter: this.props.showChapterLabel ?? true,
+      isGlow: this.props.cardGlow ?? true,
+      scene,
+      nodes,
+      fillW: `${(step / (total - 1)) * 100}%`,
+      evolveName: names[this.state.evolveIdx],
+      result,
+      flashOpacity: this.state.flash ? 1 : 0,
+      flashPE: this.state.flash ? 'auto' : 'none',
+      toast: this.state.toast,
+      pickA: () => this.select(scene.a.key),
+      pickB: () => this.select(scene.b.key),
+      pickC: () => this.select(scene.c.key),
+      goResult: () => { window.location.href = './AI原型演化結果.dc.html'; },
+      share: () => {
+        clearTimeout(this._toast);
+        this.setState({ toast: true });
+        this._toast = setTimeout(() => this.setState({ toast: false }), 2200);
+      },
+      reset: () => {
+        clearTimeout(this._adv); clearTimeout(this._rev); clearTimeout(this._go); clearTimeout(this._toast); clearInterval(this._cyc);
+        this.optionOrders = this.makeOptionOrders();
+        this.setState({ step: 0, phase: 'play', tally: {}, answers: [], flash: false, evolveIdx: 0, toast: false, lockedKey: null });
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+# AI Survival Index
+
+AI 時代生存指數 Alpha product workspace.
+
+## Structure
+
+- `AI時代生存指數.dc.html` and related `.dc.html` files: current local Alpha prototype.
+- `apps/api`: Hono API for quiz scoring and Supabase persistence.
+- `apps/web`: formal frontend shell for future LIFF/PWA migration.
+- `packages/shared`: archetype data, quiz scenarios, and scoring engine.
+- `supabase`: schema migration and remote bootstrap SQL.
+- `assets/archetypes`: locked crest assets.
+
+## Local Development
+
+```bash
+pnpm install
+pnpm supabase:start
+pnpm dev:api
+node serve-alpha.js
+```
+
+Useful local URLs:
+
+- Alpha HTML: `http://127.0.0.1:8765/`
+- API health: `http://127.0.0.1:8080/health`
+- Supabase Studio: `http://127.0.0.1:55323`
+
+## API Environment
+
+`apps/api` requires server-side Supabase credentials:
+
+```env
+PORT=8080
+APP_ORIGIN=http://localhost:5173,http://127.0.0.1:5173,http://localhost:8765,http://127.0.0.1:8765
+SUPABASE_URL=https://zcgsshcowoosunbfsvqp.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxx
+```
+
+Do not expose `SUPABASE_SERVICE_ROLE_KEY` in browser code, Cloudflare Pages frontend variables, or committed files.
+
+## Railway API Deploy
+
+This repo includes `railway.json` pointing Railway to `apps/api/Dockerfile`.
+
+Set Railway service variables:
+
+```env
+APP_ORIGIN=https://your-cloudflare-pages-domain
+SUPABASE_URL=https://zcgsshcowoosunbfsvqp.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxx
+```
+
+Railway supplies `PORT` automatically.
+
+## Supabase
+
+Remote bootstrap SQL:
+
+- `supabase/remote_bootstrap.sql`
+
+Full migration:
+
+- `supabase/migrations/202606200001_initial_schema.sql`

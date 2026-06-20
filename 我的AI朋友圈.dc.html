@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./data/archetypes.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="./alpha-app.css" rel="stylesheet">
+<style>
+  body { margin:0; background:#050409; font-family:'Noto Sans TC', sans-serif; -webkit-font-smoothing:antialiased; }
+  @keyframes floatA { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(20px,-26px) scale(1.12) } }
+  @keyframes floatB { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(-22px,20px) scale(1.15) } }
+  @keyframes gshift { 0%,100%{ background-position:0% 50% } 50%{ background-position:100% 50% } }
+  @keyframes ctaPulse { 0%,100%{ box-shadow:0 12px 42px oklch(0.6 0.2 300/0.5), 0 0 0 0 oklch(0.7 0.2 300/0.35) } 50%{ box-shadow:0 14px 52px oklch(0.6 0.2 300/0.7), 0 0 0 13px oklch(0.7 0.2 300/0) } }
+  @keyframes cardRise { 0%{ opacity:0; transform:translateY(16px) scale(0.97) } 100%{ opacity:1; transform:translateY(0) scale(1) } }
+  @keyframes haloTurn { to { transform:rotate(360deg) } }
+</style>
+</helmet>
+
+<div class="alpha-app">
+
+  <!-- ambient -->
+  <div style="position:absolute; inset:0; z-index:0; overflow:hidden;">
+    <div style="position:absolute; inset:0; background:radial-gradient(140% 55% at 50% -8%, oklch(0.5 0.18 300/0.3), transparent 60%);"></div>
+    <div style="position:absolute; width:330px; height:330px; top:-80px; left:-70px; border-radius:50%; background:radial-gradient(circle, oklch(0.6 0.2 300/0.36), transparent 65%); filter:blur(20px); animation:floatA 16s ease-in-out infinite;"></div>
+    <div style="position:absolute; width:320px; height:320px; bottom:60px; right:-90px; border-radius:50%; background:radial-gradient(circle, oklch(0.64 0.2 195/0.32), transparent 65%); filter:blur(22px); animation:floatB 20s ease-in-out infinite;"></div>
+    <div style="position:absolute; inset:0; opacity:0.45; mix-blend-mode:overlay; background-image:radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size:3px 3px;"></div>
+    <div style="position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 50%, transparent 42%, rgba(0,0,0,0.6) 100%);"></div>
+  </div>
+
+  <!-- scroll content -->
+  <div class="alpha-scroll" style="z-index:1;">
+
+    <div style="height:58px;"></div>
+
+    <!-- header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:0 24px;">
+      <div style="font-family:'Space Grotesk', sans-serif; font-size:11.5px; letter-spacing:0.2em; color:oklch(0.8 0.13 300);">LINE CREST WALL</div>
+      <div style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);">↗</div>
+    </div>
+    <div style="padding:14px 24px 0;">
+      <div style="font-size:36px; font-weight:900; letter-spacing:0.01em; line-height:1.1;">我的 AI 家徽牆</div>
+      <div style="font-size:14px; color:rgba(255,255,255,0.55); margin-top:8px;">LINE 好友圈 · <span style="font-family:'Space Grotesk', sans-serif; font-weight:700; color:#fff;">{{totalLabel}}</span> 位朋友 · {{typesLabel}}</div>
+    </div>
+
+    <!-- crest wall hero -->
+    <div style="margin:22px 24px 0; border-radius:26px; padding:18px 18px 20px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.035)); box-shadow:0 24px 70px rgba(0,0,0,0.34); overflow:hidden; position:relative; animation:cardRise 0.5s ease both;">
+      <div style="position:absolute; width:210px; height:210px; right:-68px; top:-70px; border-radius:50%; background:radial-gradient(circle, {{me.glow}}, transparent 68%);"></div>
+      <div style="position:relative; display:flex; align-items:center; gap:16px;">
+        <div style="position:relative; flex:0 0 auto; width:118px; height:118px; border-radius:26px; border:1px solid rgba(214,174,91,0.6); background:linear-gradient(180deg, #fffdf8, #f4efe4); padding:9px; box-shadow:0 18px 48px rgba(0,0,0,0.42), 0 0 34px {{me.glow}};">
+          <span style="position:absolute; inset:-8px; border-radius:32px; border:1px solid {{me.ring}}; opacity:0.36; animation:haloTurn 18s linear infinite;"></span>
+          <img src="{{me.portraitPath}}" alt="{{me.name}}" style="position:relative; display:block; width:100%; height:100%; object-fit:contain; border-radius:18px;">
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-family:'Space Grotesk', sans-serif; font-size:11px; letter-spacing:0.2em; color:{{me.color}};">MY CREST {{me.n}}</div>
+          <div style="font-size:27px; font-weight:900; line-height:1.12; margin-top:6px;">{{me.name}}</div>
+          <div style="font-size:13px; line-height:1.55; color:rgba(255,255,255,0.58); margin-top:8px; text-wrap:pretty;">你的家徽在好友圈中的位置已標記。</div>
+        </div>
+      </div>
+      <div style="position:relative; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px;">
+        <div style="border-radius:16px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.16); padding:10px 8px; text-align:center;">
+          <div style="font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:800; color:#fff;">{{totalLabel}}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px;">好友家徽</div>
+        </div>
+        <div style="border-radius:16px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.16); padding:10px 8px; text-align:center;">
+          <div style="font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:800; color:#fff;">{{typesCount}}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px;">已解鎖</div>
+        </div>
+        <div style="border-radius:16px; border:1px solid {{top.ring}}; background:{{top.soft}}; padding:10px 8px; text-align:center;">
+          <div style="font-size:13px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{top.name}}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.48); margin-top:2px;">最多類型</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- crest wall -->
+    <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; padding:30px 24px 0;">好友家徽牆</div>
+    <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; padding:14px 24px 0;">
+      <sc-for list="{{wallTiles}}" as="tile" hint-placeholder-count="9">
+        <div style="min-width:0; border-radius:18px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); padding:10px 7px 9px; text-align:center; overflow:hidden;">
+          <div style="position:relative; width:70px; height:70px; margin:0 auto; border-radius:18px; border:1px solid rgba(214,174,91,0.46); background:linear-gradient(180deg, #fffdf8, #f4efe4); box-shadow:0 0 18px {{tile.glow}}; padding:4px;">
+            <img src="{{tile.portraitPath}}" alt="{{tile.name}}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:13px;">
+          </div>
+          <div style="font-size:14px; font-weight:900; color:rgba(255,255,255,0.94); margin-top:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{tile.initial}}</div>
+          <div style="font-size:10.5px; color:{{tile.color}}; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{tile.shortName}}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- distribution -->
+    <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; padding:30px 24px 0;">原型分布</div>
+    <div style="display:flex; flex-direction:column; gap:10px; padding:14px 24px 0;">
+      <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+        <div style="border-radius:16px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); backdrop-filter:blur(6px); padding:12px 14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:11px;">
+              <div style="display:flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:13px; border:1px solid rgba(214,174,91,0.5); box-shadow:0 0 16px {{g.glow}}; background:linear-gradient(180deg, #fffdf8, #f4efe4); padding:3px; overflow:hidden;">
+                <img src="{{g.portraitPath}}" alt="{{g.name}}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:9px;">
+              </div>
+              <div style="font-size:17px; font-weight:700; color:rgba(255,255,255,0.95);">{{g.name}}</div>
+            </div>
+            <div style="font-size:13px; font-weight:700; color:{{g.color}}; padding:5px 12px; border-radius:999px; border:1px solid {{g.ring}}; background:rgba(255,255,255,0.03);">{{g.countLabel}}</div>
+          </div>
+          <div style="height:7px; border-radius:7px; background:rgba(255,255,255,0.08); overflow:hidden; margin-top:10px;">
+            <div style="height:100%; width:{{g.percentW}}; border-radius:7px; background:linear-gradient(90deg, {{g.color}}, rgba(255,255,255,0.65)); box-shadow:0 0 10px {{g.glow}};"></div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- insights -->
+    <sc-if value="{{showInsights}}" hint-placeholder-val="{{ true }}">
+      <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; padding:34px 24px 0;">圈子洞察</div>
+
+      <!-- insight 1: more willing -->
+      <div style="margin:14px 24px 0; border-radius:20px; padding:20px; border:1px solid oklch(0.7 0.16 165/0.4); background:linear-gradient(150deg, oklch(0.7 0.16 165/0.13), rgba(255,255,255,0.03));">
+        <div style="font-size:16px; font-weight:800; line-height:1.5;">你的家徽牆比全台平均<br>更願意嘗試 AI</div>
+        <div style="margin-top:18px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:rgba(255,255,255,0.7); margin-bottom:6px;"><span>你的家徽牆</span><span style="font-family:'Space Grotesk', sans-serif; font-weight:700; color:oklch(0.82 0.15 160);">{{yourWillingness}}%</span></div>
+          <div style="height:9px; border-radius:9px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:{{yourW}}; border-radius:9px; background:linear-gradient(90deg, oklch(0.7 0.16 175), oklch(0.8 0.15 150)); box-shadow:0 0 12px oklch(0.7 0.18 160/0.6);"></div></div>
+          <div style="display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:rgba(255,255,255,0.55); margin:12px 0 6px;"><span>全台平均</span><span style="font-family:'Space Grotesk', sans-serif; font-weight:700; color:rgba(255,255,255,0.65);">{{avgWillingness}}%</span></div>
+          <div style="height:9px; border-radius:9px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:{{avgW}}; border-radius:9px; background:rgba(255,255,255,0.3);"></div></div>
+        </div>
+      </div>
+
+      <!-- insight 2: missing archetype -->
+      <div style="margin:14px 24px 0; border-radius:20px; padding:20px; border:1px dashed rgba(255,255,255,0.22); background:rgba(255,255,255,0.03); display:flex; align-items:center; gap:16px;">
+        <div style="position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center; width:58px; height:58px; border-radius:16px; border:1px dashed {{missing.ring}}; background:linear-gradient(180deg, rgba(255,253,248,0.92), rgba(244,239,228,0.9)); padding:4px; opacity:0.76; overflow:hidden;">
+          <img src="{{missing.portraitPath}}" alt="{{missing.name}}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:12px; filter:saturate(0.75);">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:12.5px; color:rgba(255,255,255,0.55);">你的家徽牆缺少</div>
+          <div style="font-size:19px; font-weight:800; margin-top:3px;">{{missing.name}}</div>
+          <div style="font-size:12.5px; color:rgba(255,255,255,0.5); margin-top:5px; line-height:1.5;">0 位 · 也許你會是第一個遇見的人</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- CTAs -->
+    <div style="padding:32px 24px 36px;">
+      <button onClick="{{goFuture}}" style-active="transform:scale(0.97)" style="width:100%; height:58px; border-radius:999px; border:1px solid rgba(255,255,255,0.2); cursor:pointer; font-family:inherit; font-size:17px; font-weight:700; color:#fff; letter-spacing:0.06em; display:flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(100deg, oklch(0.68 0.2 292), oklch(0.64 0.21 326), oklch(0.7 0.19 256)); background-size:170% 170%; animation:ctaPulse 2.6s ease-in-out infinite, gshift 6s ease-in-out infinite;"><span style="width:9px; height:9px; border-radius:50%; background:oklch(0.95 0.05 150); box-shadow:0 0 8px #fff;"></span>開啟未來導航</button>
+      <button onClick="{{share}}" style-active="transform:scale(0.97)" style="width:100%; height:52px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:15px; font-weight:700; color:rgba(255,255,255,0.85); border:1px solid rgba(255,255,255,0.16); background:rgba(255,255,255,0.04); margin-top:12px;">分享我的 AI 家徽牆</button>
+      <div onClick="{{invite}}" style="text-align:center; margin-top:18px; font-size:13px; color:rgba(255,255,255,0.4); cursor:pointer; letter-spacing:0.04em;">邀請朋友一起測測看</div>
+    </div>
+
+  </div>
+
+  <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; left:24px; right:24px; bottom:28px; z-index:50; padding:15px 18px; border-radius:18px; border:1px solid rgba(255,255,255,0.16); background:rgba(12,10,24,0.94); box-shadow:0 14px 36px rgba(0,0,0,0.45); backdrop-filter:blur(10px); text-align:center; font-size:14px; line-height:1.55; color:rgba(255,255,255,0.92);">{{toastMessage}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<div id="alpha-fallback-friends" style="position:fixed; inset:0; z-index:9999; display:flex; justify-content:center; background:#050409; color:#fff; font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;">
+  <div style="position:relative; width:100%; max-width:390px; height:100dvh; overflow:hidden; background:#070510;">
+    <div style="position:absolute; inset:0; background:radial-gradient(140% 60% at 50% -10%, rgba(153,96,255,0.3), transparent 60%), radial-gradient(90% 62% at 85% 70%, rgba(38,190,190,0.22), transparent 62%);"></div>
+    <div style="position:absolute; inset:0; opacity:0.45; background-image:radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size:3px 3px;"></div>
+    <div id="fallback-friends-stage" style="position:relative; height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;"></div>
+  </div>
+</div>
+<script>
+(function () {
+  const arch = window.AI_SURVIVAL_ARCHETYPE_MAP || {
+    explorer: { n: '01', name: 'AI探險家', hue: 288, symbol: '◇' },
+    craftsman: { n: '02', name: 'AI工匠', hue: 255, symbol: '◆' },
+    guardian: { n: '03', name: 'AI守護者', hue: 210, symbol: '●' },
+    navigator: { n: '04', name: 'AI領航員', hue: 170, symbol: '▲' },
+    strategist: { n: '05', name: 'AI策士', hue: 135, symbol: '◎' },
+    inventor: { n: '06', name: 'AI發明家', hue: 95, symbol: '✦' },
+    trader: { n: '07', name: 'AI交易員', hue: 55, symbol: '◈' },
+    mentor: { n: '08', name: 'AI導師', hue: 28, symbol: '◉' },
+    builder: { n: '09', name: 'AI建造者', hue: 332, symbol: '▣' },
+  };
+  const stage = document.getElementById('fallback-friends-stage');
+  const distribution = [
+    { key: 'explorer', count: 8 },
+    { key: 'guardian', count: 3 },
+    { key: 'craftsman', count: 2 },
+    { key: 'inventor', count: 2 },
+    { key: 'mentor', count: 1 },
+  ];
+  const initials = ['林','陳','王','李','張','黃','吳','劉','蔡','楊','許','鄭','謝','郭','洪','曾'];
+  function getType(key, fallback = 'explorer') {
+    const resolvedKey = arch[key] ? key : fallback;
+    const item = arch[resolvedKey];
+    return {
+      key: resolvedKey,
+      ...item,
+      shortName: item.name.replace(/^AI/, ''),
+      portraitPath: item.imagePaths?.portrait || `./assets/archetypes/${resolvedKey}.png`,
+      color: `oklch(0.8 0.15 ${item.hue})`,
+      ring: `oklch(0.78 0.16 ${item.hue} / 0.55)`,
+      glow: `oklch(0.7 0.18 ${item.hue} / 0.4)`,
+      soft: `oklch(0.78 0.16 ${item.hue} / 0.13)`,
+    };
+  }
+  function escapeHtml(text) {
+    return String(text || '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+  }
+  function loadPrimary() {
+    try {
+      const raw = localStorage.getItem('aiSurvivalAlphaResult');
+      if (raw) return JSON.parse(raw).primaryType || 'explorer';
+    } catch (e) {}
+    return localStorage.getItem('primaryType') || 'explorer';
+  }
+  function render() {
+    const me = getType(loadPrimary());
+    const total = distribution.reduce((sum, item) => sum + item.count, 0);
+    const tiles = [];
+    let seed = 0;
+    distribution.forEach((row) => {
+      const type = getType(row.key);
+      for (let i = 0; i < row.count; i++) tiles.push({ ...type, initial: initials[(seed++) % initials.length] });
+    });
+    const top = getType(distribution[0].key);
+    stage.innerHTML = `
+      <div style="padding:58px 24px 36px;">
+        <div style="font-family:Arial,sans-serif; font-size:11.5px; letter-spacing:0.2em; color:#cba6ff;">LINE CREST WALL</div>
+        <div style="font-size:36px; font-weight:900; line-height:1.1; margin-top:14px;">我的 AI 家徽牆</div>
+        <div style="font-size:14px; color:rgba(255,255,255,0.55); margin-top:8px;">LINE 好友圈 · <b style="color:#fff;">${total}</b> 位朋友 · ${distribution.length} 種原型</div>
+        <div style="margin-top:22px; border-radius:26px; padding:18px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.035)); box-shadow:0 24px 70px rgba(0,0,0,0.34);">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width:118px; height:118px; border-radius:26px; border:1px solid rgba(214,174,91,0.6); background:linear-gradient(180deg,#fffdf8,#f4efe4); padding:9px; box-shadow:0 18px 48px rgba(0,0,0,0.42), 0 0 34px ${me.glow};">
+              <img src="${me.portraitPath}" alt="${escapeHtml(me.name)}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:18px;">
+            </div>
+            <div style="flex:1;">
+              <div style="font-family:Arial,sans-serif; font-size:11px; letter-spacing:0.2em; color:${me.color};">MY CREST ${escapeHtml(me.n)}</div>
+              <div style="font-size:27px; font-weight:900; line-height:1.12; margin-top:6px;">${escapeHtml(me.name)}</div>
+              <div style="font-size:13px; line-height:1.55; color:rgba(255,255,255,0.58); margin-top:8px;">你的家徽在好友圈中的位置已標記。</div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; margin-top:30px;">好友家徽牆</div>
+        <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin-top:14px;">
+          ${tiles.map(tile).join('')}
+        </div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; margin-top:30px;">圈子洞察</div>
+        <div style="margin-top:14px; border-radius:20px; padding:20px; border:1px solid ${top.ring}; background:linear-gradient(150deg, ${top.soft}, rgba(255,255,255,0.03));">
+          <div style="font-size:16px; font-weight:900; line-height:1.5;">你的圈子最多的是 ${escapeHtml(top.name)}</div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:8px;">好友家徽牆比全台平均更願意嘗試 AI。</div>
+        </div>
+        <button data-action="future" style="${buttonStyle(true)} margin-top:28px;">開啟未來導航</button>
+        <button data-action="share" style="${buttonStyle(false)} margin-top:12px;">分享我的 AI 家徽牆</button>
+        <button data-action="invite" style="width:100%; margin-top:18px; border:0; background:transparent; color:rgba(255,255,255,0.45); font-family:inherit; font-size:13px; cursor:pointer;">邀請朋友一起測測看</button>
+      </div>
+    `;
+    bind();
+  }
+  function tile(item) {
+    return `<div style="min-width:0; border-radius:18px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); padding:10px 7px 9px; text-align:center; overflow:hidden;"><div style="width:70px; height:70px; margin:0 auto; border-radius:18px; border:1px solid rgba(214,174,91,0.46); background:linear-gradient(180deg,#fffdf8,#f4efe4); box-shadow:0 0 18px ${item.glow}; padding:4px;"><img src="${item.portraitPath}" alt="${escapeHtml(item.name)}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:13px;"></div><div style="font-size:14px; font-weight:900; color:rgba(255,255,255,0.94); margin-top:8px;">${escapeHtml(item.initial)}</div><div style="font-size:10.5px; color:${item.color}; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.shortName)}</div></div>`;
+  }
+  function buttonStyle(primary) {
+    return `width:100%; height:${primary ? 58 : 52}px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:${primary ? 17 : 15}px; font-weight:900; color:#fff; border:1px solid rgba(255,255,255,0.2); background:${primary ? 'linear-gradient(100deg,#8758ff,#d94fa8,#4e9fff)' : 'rgba(255,255,255,0.06)'};`;
+  }
+  function toast(message) {
+    const el = document.createElement('div');
+    el.textContent = message;
+    el.style.cssText = 'position:absolute; left:24px; right:24px; bottom:28px; z-index:6; padding:15px 18px; border-radius:18px; border:1px solid rgba(255,255,255,0.16); background:rgba(12,10,24,0.94); box-shadow:0 14px 36px rgba(0,0,0,0.45); text-align:center; font-size:14px; line-height:1.55; color:rgba(255,255,255,0.92);';
+    stage.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  }
+  function bind() {
+    stage.querySelectorAll('[data-action]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const action = el.getAttribute('data-action');
+        if (action === 'future') window.location.href = './未來導航.dc.html';
+        if (action === 'share') toast('LINE 分享功能將於 LIFF 版本開啟');
+        if (action === 'invite') toast('LINE 邀請功能將於 LIFF 版本開啟');
+      });
+    });
+  }
+  render();
+})();
+</script>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 390, &quot;height&quot;: 844 },
+  &quot;showInsights&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;yourWillingness&quot;: { &quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 87, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 0, &quot;max&quot;: 100 },
+  &quot;avgWillingness&quot;: { &quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 54, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 0, &quot;max&quot;: 100 },
+  &quot;missingKey&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;builder&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;explorer&quot;, &quot;craftsman&quot;, &quot;guardian&quot;, &quot;navigator&quot;, &quot;strategist&quot;, &quot;inventor&quot;, &quot;trader&quot;, &quot;mentor&quot;, &quot;builder&quot;] }
+}">
+class Component extends DCLogic {
+  state = { toast: false, toastMessage: '' };
+
+  // TODO: remove fallback once every page fully consumes data/archetypes.js.
+  arch = window.AI_SURVIVAL_ARCHETYPE_MAP || {
+    explorer:   { n: '01', name: 'AI探險家', hue: 288, symbol: '◇' },
+    craftsman:  { n: '02', name: 'AI工匠',   hue: 255, symbol: '◆' },
+    guardian:   { n: '03', name: 'AI守護者', hue: 210, symbol: '●' },
+    navigator:  { n: '04', name: 'AI領航員', hue: 170, symbol: '▲' },
+    strategist: { n: '05', name: 'AI策士',   hue: 135, symbol: '◎' },
+    inventor:   { n: '06', name: 'AI發明家', hue: 95,  symbol: '✦' },
+    trader:     { n: '07', name: 'AI交易員', hue: 55,  symbol: '◈' },
+    mentor:     { n: '08', name: 'AI導師',   hue: 28,  symbol: '◉' },
+    builder:    { n: '09', name: 'AI建造者', hue: 332, symbol: '▣' },
+  };
+
+  mockData = {
+    distribution: [
+      { key: 'explorer',  count: 8 },
+      { key: 'guardian',  count: 3 },
+      { key: 'craftsman', count: 2 },
+      { key: 'inventor',  count: 2 },
+      { key: 'mentor',    count: 1 },
+    ],
+    avatarInitials: ['林','陳','王','李','張','黃','吳','劉','蔡','楊','許','鄭','謝','郭','洪','曾'],
+    insights: {
+      yourWillingness: 87,
+      avgWillingness: 54,
+      missingKey: 'builder',
+    },
+  };
+
+  componentWillUnmount() {
+    clearTimeout(this._toast);
+  }
+
+  loadAlphaResult() {
+    try {
+      const raw = localStorage.getItem('aiSurvivalAlphaResult');
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {
+      primaryType: localStorage.getItem('primaryType'),
+      secondaryType: localStorage.getItem('secondaryType'),
+      evolutionType: localStorage.getItem('evolutionType'),
+    };
+  }
+
+  renderVals() {
+    const tint = (hue) => ({
+      color: `oklch(0.8 0.15 ${hue})`,
+      ring:  `oklch(0.78 0.16 ${hue} / 0.55)`,
+      glow:  `oklch(0.7 0.18 ${hue} / 0.4)`,
+      soft:  `oklch(0.78 0.16 ${hue} / 0.13)`,
+    });
+
+    const getArch = (key, fallback = 'explorer') => {
+      const resolvedKey = this.arch[key] ? key : fallback;
+      const a = this.arch[resolvedKey];
+      return {
+        key: resolvedKey,
+        n: a.n,
+        name: a.name,
+        shortName: a.name.replace(/^AI/, ''),
+        symbol: a.symbol,
+        portraitPath: a.imagePaths?.portrait || `./assets/archetypes/${resolvedKey}.png`,
+        ...tint(a.hue),
+      };
+    };
+
+    const alpha = this.loadAlphaResult();
+    const me = getArch(alpha.primaryType || 'explorer', 'explorer');
+
+    let seed = 0;
+    const nextInitial = () => this.mockData.avatarInitials[(seed++) % this.mockData.avatarInitials.length];
+
+    const total = this.mockData.distribution.reduce((s, d) => s + d.count, 0);
+    const groups = this.mockData.distribution.map(d => {
+      const a = getArch(d.key);
+      const percent = total ? Math.round((d.count / total) * 100) : 0;
+      return {
+        ...a,
+        count: d.count,
+        countLabel: `${d.count} 位`,
+        percentW: `${percent}%`,
+      };
+    });
+
+    const wallTiles = [];
+    this.mockData.distribution.forEach(d => {
+      const a = getArch(d.key);
+      for (let i = 0; i < d.count; i++) {
+        wallTiles.push({
+          ...a,
+          initial: nextInitial(),
+        });
+      }
+    });
+
+    const t = groups[0];
+    const top = {
+      name: t.name, count: t.count, color: t.color, ring: t.ring, glow: t.glow, soft: t.soft,
+    };
+
+    const missingKey = this.props.missingKey || this.mockData.insights.missingKey;
+    const missing = getArch(missingKey, 'builder');
+
+    const yourW = Math.max(0, Math.min(100, this.props.yourWillingness ?? this.mockData.insights.yourWillingness));
+    const avgW = Math.max(0, Math.min(100, this.props.avgWillingness ?? this.mockData.insights.avgWillingness));
+
+    return {
+      me,
+      groups,
+      wallTiles,
+      top,
+      totalLabel: String(total),
+      typesCount: String(this.mockData.distribution.length),
+      typesLabel: `${this.mockData.distribution.length} 種原型`,
+      missing,
+      showInsights: this.props.showInsights ?? true,
+      yourWillingness: yourW,
+      avgWillingness: avgW,
+      yourW: `${yourW}%`,
+      avgW: `${avgW}%`,
+      toast: this.state.toast,
+      toastMessage: this.state.toastMessage,
+      goFuture: () => { window.location.href = './未來導航.dc.html'; },
+      share: () => {
+        clearTimeout(this._toast);
+        this.setState({ toast: true, toastMessage: 'LINE 分享功能將於 LIFF 版本開啟' });
+        this._toast = setTimeout(() => this.setState({ toast: false }), 2200);
+      },
+      invite: () => {
+        clearTimeout(this._toast);
+        this.setState({ toast: true, toastMessage: 'LINE 邀請功能將於 LIFF 版本開啟' });
+        this._toast = setTimeout(() => this.setState({ toast: false }), 2200);
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

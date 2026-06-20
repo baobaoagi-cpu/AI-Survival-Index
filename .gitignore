@@ -1,0 +1,16 @@
+node_modules/
+dist/
+apps/*/dist/
+packages/*/dist/
+.env
+.env.local
+.DS_Store
+.chrome-alpha-check/
+.thumbnail
+deploy/cloudflare-alpha/
+deploy/cloudflare-alpha.zip
+assets/higgsfield-tests/
+assets/archetypes/backup-*/
+assets/archetypes/local-geometric-draft/
+assets/qa/
+supabase/.temp/

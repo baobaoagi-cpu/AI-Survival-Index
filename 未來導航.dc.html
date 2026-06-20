@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./data/archetypes.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="./alpha-app.css" rel="stylesheet">
+<style>
+  body { margin:0; background:#050409; font-family:'Noto Sans TC', sans-serif; -webkit-font-smoothing:antialiased; }
+  @keyframes floatA { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(20px,-26px) scale(1.12) } }
+  @keyframes floatB { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(-22px,20px) scale(1.15) } }
+  @keyframes gshift { 0%,100%{ background-position:0% 50% } 50%{ background-position:100% 50% } }
+  @keyframes spinSlow { to { transform:rotate(360deg) } }
+  @keyframes pulseGlow { 0%,100%{ opacity:0.55; transform:scale(1) } 50%{ opacity:1; transform:scale(1.12) } }
+  @keyframes ctaPulse { 0%,100%{ box-shadow:0 12px 42px oklch(0.6 0.2 300/0.5), 0 0 0 0 oklch(0.7 0.2 300/0.35) } 50%{ box-shadow:0 14px 52px oklch(0.6 0.2 300/0.7), 0 0 0 13px oklch(0.7 0.2 300/0) } }
+</style>
+</helmet>
+
+<div class="alpha-app">
+
+  <!-- ambient -->
+  <div style="position:absolute; inset:0; z-index:0; overflow:hidden;">
+    <div style="position:absolute; inset:0; background:radial-gradient(140% 55% at 50% -8%, oklch(0.5 0.18 290/0.32), transparent 60%);"></div>
+    <div style="position:absolute; width:340px; height:340px; top:-90px; left:-70px; border-radius:50%; background:radial-gradient(circle, oklch(0.6 0.2 290/0.4), transparent 65%); filter:blur(20px); animation:floatA 16s ease-in-out infinite;"></div>
+    <div style="position:absolute; width:320px; height:320px; bottom:80px; right:-90px; border-radius:50%; background:radial-gradient(circle, oklch(0.64 0.2 200/0.34), transparent 65%); filter:blur(22px); animation:floatB 20s ease-in-out infinite;"></div>
+    <div style="position:absolute; inset:0; opacity:0.45; mix-blend-mode:overlay; background-image:radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size:3px 3px;"></div>
+    <div style="position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 50%, transparent 42%, rgba(0,0,0,0.6) 100%);"></div>
+  </div>
+
+  <!-- close -->
+  <div style="position:absolute; top:15px; right:15px; z-index:6; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5); font-size:15px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);">✕</div>
+
+  <!-- scroll content -->
+  <div class="alpha-scroll" style="z-index:1;">
+
+    <div style="height:60px;"></div>
+
+    <!-- hero text -->
+    <div style="text-align:center; padding:0 28px;">
+      <div style="font-family:'Space Grotesk', sans-serif; font-size:11.5px; letter-spacing:0.24em; color:oklch(0.8 0.13 290);">LIFE NAVIGATION</div>
+      <div style="font-size:38px; font-weight:900; line-height:1.14; margin-top:16px; background:linear-gradient(100deg, oklch(0.84 0.15 285), oklch(0.86 0.13 210), oklch(0.84 0.16 332)); background-size:200% 200%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:gshift 8s ease-in-out infinite;">你的未來<br>不是固定的</div>
+      <div style="font-size:15.5px; color:rgba(255,255,255,0.6); margin-top:16px; line-height:1.7;">追蹤你的 AI 人格演化</div>
+    </div>
+
+    <!-- compass hero -->
+    <sc-if value="{{showCompass}}" hint-placeholder-val="{{ true }}">
+      <div style="position:relative; width:212px; height:212px; margin:34px auto 6px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle, oklch(0.6 0.18 280/0.35), transparent 68%); filter:blur(6px); animation:pulseGlow 5s ease-in-out infinite;"></div>
+        <div style="position:absolute; width:188px; height:188px; border-radius:50%; border:1px solid rgba(255,255,255,0.12); box-shadow:0 0 30px oklch(0.6 0.18 285/0.3), inset 0 0 30px oklch(0.6 0.16 285/0.1);"></div>
+        <div style="position:absolute; width:132px; height:132px; border-radius:50%; border:1px solid rgba(255,255,255,0.1);"></div>
+        <div style="position:absolute; width:72px; height:72px; border-radius:50%; border:1px solid rgba(255,255,255,0.09);"></div>
+        <div style="position:absolute; width:158px; height:158px; border-radius:50%; border:1px dashed rgba(255,255,255,0.16); animation:{{dashAnim}};"></div>
+        <!-- orbiting "you" -->
+        <div style="position:absolute; width:188px; height:188px; animation:{{orbitAnim}};">
+          <span style="position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:12px; height:12px; border-radius:50%; background:oklch(0.82 0.16 285); box-shadow:0 0 14px oklch(0.78 0.18 285);"></span>
+        </div>
+        <!-- north star (destination) -->
+        <div style="position:absolute; top:8px; left:50%; transform:translateX(-50%) rotate(45deg); width:16px; height:16px; border-radius:3px; background:linear-gradient(135deg, oklch(0.9 0.1 200), oklch(0.85 0.13 290)); box-shadow:0 0 20px oklch(0.85 0.14 250); animation:pulseGlow 3s ease-in-out infinite;"></div>
+        <!-- hub -->
+        <div style="position:relative; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 16px rgba(255,255,255,0.8);"></div>
+      </div>
+      <div style="text-align:center; font-family:'Space Grotesk', sans-serif; font-size:11px; letter-spacing:0.18em; color:rgba(255,255,255,0.45); margin-bottom:6px;">你在這裡 → 你正前往的未來</div>
+    </sc-if>
+
+    <!-- features -->
+    <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; padding:30px 24px 0;">你的導航系統，包含</div>
+    <div style="display:flex; flex-direction:column; gap:12px; padding:14px 24px 0;">
+      <sc-for list="{{features}}" as="f" hint-placeholder-count="5">
+        <div style="display:flex; align-items:center; gap:15px; border-radius:18px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); backdrop-filter:blur(6px); padding:16px;">
+          <div style="flex:0 0 auto; display:flex; align-items:center; justify-content:center; width:46px; height:46px; border-radius:50%; border:1.5px solid {{f.ring}}; box-shadow:0 0 20px {{f.glow}}, inset 0 0 14px {{f.soft}}; background:radial-gradient(circle at 50% 35%, {{f.soft}}, transparent 72%); color:{{f.color}}; font-size:19px;">{{f.glyph}}</div>
+          <div style="flex:1;">
+            <div style="font-size:16.5px; font-weight:700; color:rgba(255,255,255,0.95);">{{f.name}}</div>
+            <div style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:3px; line-height:1.55;">{{f.line}}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- price / invitation -->
+    <div style="margin:32px 24px 0; border-radius:24px; padding:26px 24px; border:1px solid oklch(0.7 0.16 285/0.45); background:linear-gradient(160deg, oklch(0.6 0.18 285/0.16), rgba(255,255,255,0.03)); position:relative; overflow:hidden;">
+      <div style="position:absolute; width:200px; height:200px; right:-60px; top:-70px; border-radius:50%; background:radial-gradient(circle, oklch(0.65 0.2 290/0.3), transparent 70%);"></div>
+      <div style="position:relative; text-align:center;">
+        <div style="font-size:12.5px; letter-spacing:0.16em; color:oklch(0.82 0.13 285); font-family:'Space Grotesk', sans-serif;">領航會員</div>
+        <div style="display:flex; align-items:flex-end; justify-content:center; gap:6px; margin-top:12px;">
+          <span style="font-family:'Space Grotesk', sans-serif; font-size:46px; font-weight:700; line-height:0.9; color:#fff;">NT$199</span>
+          <span style="font-size:16px; color:rgba(255,255,255,0.55); padding-bottom:6px;">/ 月</span>
+        </div>
+        <div style="font-size:14px; color:rgba(255,255,255,0.6); margin-top:14px; line-height:1.7;">你的未來不該被預設。<br>讓它有一套自己的導航系統。</div>
+        <button style-active="transform:scale(0.97)" style="width:100%; height:58px; border-radius:999px; border:1px solid rgba(255,255,255,0.2); cursor:pointer; font-family:inherit; font-size:17px; font-weight:700; color:#fff; letter-spacing:0.06em; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:22px; background:linear-gradient(100deg, oklch(0.68 0.2 292), oklch(0.64 0.21 326), oklch(0.7 0.19 256)); background-size:170% 170%; animation:ctaPulse 2.6s ease-in-out infinite, gshift 6s ease-in-out infinite;">開啟我的未來導航 <span style="font-size:19px;">→</span></button>
+        <sc-if value="{{showTrialNote}}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:11.5px; color:rgba(255,255,255,0.42); margin-top:14px; letter-spacing:0.04em;">隨時可取消 · 首月自由體驗</div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="text-align:center; font-size:12.5px; color:rgba(255,255,255,0.35); padding:24px 32px 40px; line-height:1.7;">這不是一套效率工具，<br>而是一段陪你前行的旅程。</div>
+
+  </div>
+</div>
+</x-dc>
+<div id="alpha-fallback-future" style="position:fixed; inset:0; z-index:9999; display:flex; justify-content:center; background:#050409; color:#fff; font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;">
+  <div style="position:relative; width:100%; max-width:390px; height:100dvh; overflow:hidden; background:#070510;">
+    <div style="position:absolute; inset:0; background:radial-gradient(140% 60% at 50% -10%, rgba(153,96,255,0.3), transparent 60%), radial-gradient(90% 62% at 85% 70%, rgba(38,190,190,0.22), transparent 62%);"></div>
+    <div style="position:absolute; inset:0; opacity:0.45; background-image:radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size:3px 3px;"></div>
+    <div style="position:relative; height:100%; overflow-y:auto; overflow-x:hidden; padding:60px 24px 40px; text-align:center;">
+      <div style="font-family:Arial,sans-serif; font-size:11.5px; letter-spacing:0.24em; color:#cba6ff;">LIFE NAVIGATION</div>
+      <div style="font-size:38px; font-weight:900; line-height:1.14; margin-top:16px;">你的未來<br>不是固定的</div>
+      <div style="font-size:15.5px; color:rgba(255,255,255,0.6); margin-top:16px; line-height:1.7;">追蹤你的 AI 人格演化</div>
+      <div style="position:relative; width:212px; height:212px; margin:34px auto 18px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; width:188px; height:188px; border-radius:50%; border:1px solid rgba(255,255,255,0.12); box-shadow:0 0 30px rgba(153,96,255,0.34), inset 0 0 30px rgba(153,96,255,0.12);"></div>
+        <div style="position:absolute; width:132px; height:132px; border-radius:50%; border:1px solid rgba(255,255,255,0.1);"></div>
+        <div style="position:absolute; width:72px; height:72px; border-radius:50%; border:1px solid rgba(255,255,255,0.09);"></div>
+        <div style="position:absolute; width:4px; height:130px; border-radius:4px; background:linear-gradient(180deg, transparent, #fff, transparent); transform:rotate(38deg); box-shadow:0 0 18px rgba(255,255,255,0.8);"></div>
+        <div style="position:relative; width:76px; height:76px; border-radius:50%; background:linear-gradient(135deg,#8758ff,#4e9fff); display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900;">✦</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px; text-align:left; margin-top:22px;">
+        <div style="border-radius:18px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); padding:16px;"><div style="font-size:18px; font-weight:900;">AI 演化週報</div><div style="font-size:13px; color:rgba(255,255,255,0.56); line-height:1.55; margin-top:6px;">每週追蹤你的能力變化與下一步提醒。</div></div>
+        <div style="border-radius:18px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); padding:16px;"><div style="font-size:18px; font-weight:900;">AI 風險預警</div><div style="font-size:13px; color:rgba(255,255,255,0.56); line-height:1.55; margin-top:6px;">浪潮來臨前，先你一步看見。</div></div>
+        <div style="border-radius:18px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); padding:16px;"><div style="font-size:18px; font-weight:900;">朋友演化對照</div><div style="font-size:13px; color:rgba(255,255,255,0.56); line-height:1.55; margin-top:6px;">和朋友一起，見證彼此的改變。</div></div>
+      </div>
+      <div style="margin-top:22px; border-radius:24px; padding:22px; border:1px solid rgba(255,255,255,0.12); background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));">
+        <div style="font-size:12.5px; letter-spacing:0.16em; color:#cba6ff; font-family:Arial,sans-serif;">領航會員</div>
+        <div style="display:flex; align-items:flex-end; justify-content:center; gap:6px; margin-top:12px;"><span style="font-family:Arial,sans-serif; font-size:46px; font-weight:900; line-height:0.9;">NT$199</span><span style="font-size:16px; color:rgba(255,255,255,0.55); padding-bottom:6px;">/ 月</span></div>
+        <div style="font-size:14px; color:rgba(255,255,255,0.6); margin-top:14px; line-height:1.7;">本機 Alpha 先不接付款。<br>這裡保留未來會員入口。</div>
+        <button onclick="alert('付款功能將於正式版本開啟')" style="width:100%; height:58px; border-radius:999px; border:1px solid rgba(255,255,255,0.2); cursor:pointer; font-family:inherit; font-size:17px; font-weight:900; color:#fff; margin-top:22px; background:linear-gradient(100deg,#8758ff,#d94fa8,#4e9fff);">開啟我的未來導航 →</button>
+        <div style="font-size:11.5px; color:rgba(255,255,255,0.42); margin-top:14px; letter-spacing:0.04em;">本機 Alpha · 尚未串接金流</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 390, &quot;height&quot;: 844 },
+  &quot;showCompass&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;compassMotion&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;showTrialNote&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; }
+}">
+class Component extends DCLogic {
+  features = [
+    { glyph: '↗', name: '未來軌跡',     line: '看見你正在前往的方向',       hue: 288 },
+    { glyph: '▲', name: '成長儀表板',   line: '每一個選擇，都化為你的軌跡',  hue: 215 },
+    { glyph: '◎', name: '每月演化報告', line: '每個月，遇見更新的自己',     hue: 170 },
+    { glyph: '◆', name: 'AI 風險預警',  line: '浪潮來臨前，先你一步看見',    hue: 40  },
+    { glyph: '◇', name: '朋友演化對照', line: '和朋友一起，見證彼此的改變',  hue: 320 },
+  ];
+
+  renderVals() {
+    const tint = (hue) => ({
+      color: `oklch(0.82 0.15 ${hue})`,
+      ring:  `oklch(0.78 0.16 ${hue} / 0.55)`,
+      glow:  `oklch(0.7 0.18 ${hue} / 0.4)`,
+      soft:  `oklch(0.78 0.16 ${hue} / 0.13)`,
+    });
+    const motion = this.props.compassMotion ?? true;
+    return {
+      features: this.features.map(f => ({ glyph: f.glyph, name: f.name, line: f.line, ...tint(f.hue) })),
+      showCompass: this.props.showCompass ?? true,
+      showTrialNote: this.props.showTrialNote ?? true,
+      orbitAnim: motion ? 'spinSlow 14s linear infinite' : 'none',
+      dashAnim: motion ? 'spinSlow 34s linear infinite reverse' : 'none',
+    };
+  }
+}
+</script>
+</body>
+</html>
