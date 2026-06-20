@@ -11,6 +11,7 @@ AI 時代生存指數 Alpha product workspace.
 - `supabase`: schema migration and remote bootstrap SQL.
 - `assets/archetypes`: locked crest assets.
 - `docs/product-advisory-board.md`: product, architecture, UX, analytics, and growth decision rules.
+- `docs/option-image-prompt-bible.md`: 18 option image prompts for quiz choice illustrations.
 
 ## Local Development
 
