@@ -5,10 +5,10 @@ import { createQuizSession, QuizPersistenceError } from "../services/quiz-sessio
 export const quizRoute = new Hono();
 
 quizRoute.post("/score", async (c) => {
-  let body: { answers?: QuizAnswerInput[] };
+  let body: { answers?: QuizAnswerInput[]; referrerProfileId?: string };
 
   try {
-    body = (await c.req.json()) as { answers?: QuizAnswerInput[] };
+    body = (await c.req.json()) as { answers?: QuizAnswerInput[]; referrerProfileId?: string };
   } catch {
     return c.json({ error: "body must be valid JSON" }, 400);
   }
@@ -27,6 +27,7 @@ quizRoute.post("/score", async (c) => {
       ...(lineUserId ? { lineUserId } : {}),
       ...(displayName ? { displayName } : {}),
       ...(pictureUrl ? { pictureUrl } : {}),
+      ...(body.referrerProfileId ? { referrerProfileId: body.referrerProfileId } : {}),
     });
 
     return c.json({

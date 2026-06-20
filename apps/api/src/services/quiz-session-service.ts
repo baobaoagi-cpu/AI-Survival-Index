@@ -7,6 +7,7 @@ export type CreateQuizSessionInput = {
   lineUserId?: string;
   displayName?: string;
   pictureUrl?: string;
+  referrerProfileId?: string;
   answers: QuizAnswerInput[];
   supabase?: SupabaseClient | null;
 };
@@ -42,6 +43,9 @@ export async function createQuizSession(input: CreateQuizSessionInput): Promise<
   }
 
   const profileId = input.lineUserId ? await upsertProfile(supabase, input) : null;
+  if (profileId && input.referrerProfileId) {
+    await linkReferral(supabase, input.referrerProfileId, profileId, "quiz_referral");
+  }
   const completedAt = new Date().toISOString();
 
   const { data: session, error: sessionError } = await supabase
@@ -99,7 +103,7 @@ export async function createQuizSession(input: CreateQuizSessionInput): Promise<
   };
 }
 
-async function upsertProfile(
+export async function upsertProfile(
   supabase: SupabaseClient,
   input: Pick<CreateQuizSessionInput, "lineUserId" | "displayName" | "pictureUrl">,
 ): Promise<string> {
@@ -121,4 +125,26 @@ async function upsertProfile(
   }
 
   return data.id;
+}
+
+export async function linkReferral(
+  supabase: SupabaseClient,
+  ownerProfileId: string,
+  friendProfileId: string,
+  source = "line_liff_share",
+): Promise<void> {
+  if (!ownerProfileId || !friendProfileId || ownerProfileId === friendProfileId) return;
+
+  const { error } = await supabase.from("friend_links").upsert(
+    {
+      owner_profile_id: ownerProfileId,
+      friend_profile_id: friendProfileId,
+      source,
+    },
+    { onConflict: "owner_profile_id,friend_profile_id" },
+  );
+
+  if (error) {
+    throw new QuizPersistenceError("Failed to create friend link", error);
+  }
 }

@@ -3,6 +3,7 @@
   const PAGE_EVENT_MAP = [
     { match: "AI原型演化結果", eventName: "viewed_result" },
     { match: "我的AI朋友圈", eventName: "opened_friend_wall" },
+    { match: "friends", eventName: "opened_friend_wall" },
     { match: "未來導航", eventName: "entered_membership_page" },
   ];
 
@@ -88,7 +89,7 @@
       if (text.includes("開始探索")) track("started_quiz");
       if (text.includes("分享")) track("clicked_share", { metadata: { text, action } });
       if (text.includes("邀請")) track("clicked_invite", { metadata: { text, action } });
-      if (text.includes("好友圈") || text.includes("家徽牆")) track("opened_friend_wall", { metadata: { text, action } });
+      if (text.includes("好友圈") || text.includes("家徽牆") || text.includes("好友類型分佈")) track("opened_friend_wall", { metadata: { text, action } });
       if (text.includes("未來導航")) track("entered_membership_page", { metadata: { text, action } });
     },
     { capture: true },

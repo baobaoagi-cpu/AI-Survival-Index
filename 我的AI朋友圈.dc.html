@@ -1,471 +1,290 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的好友類型分佈</title>
+<script src="./runtime-config.js"></script>
+<script src="./line-liff.js"></script>
+<script src="./tracking.js"></script>
 <script src="./data/archetypes.js"></script>
-<script src="./support.js"></script>
-</head>
-<body>
-<x-dc>
-<helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="./alpha-app.css" rel="stylesheet">
 <style>
-  body { margin:0; background:#050409; font-family:'Noto Sans TC', sans-serif; -webkit-font-smoothing:antialiased; }
-  @keyframes floatA { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(20px,-26px) scale(1.12) } }
-  @keyframes floatB { 0%,100%{ transform:translate(0,0) scale(1) } 50%{ transform:translate(-22px,20px) scale(1.15) } }
-  @keyframes gshift { 0%,100%{ background-position:0% 50% } 50%{ background-position:100% 50% } }
-  @keyframes ctaPulse { 0%,100%{ box-shadow:0 12px 42px oklch(0.6 0.2 300/0.5), 0 0 0 0 oklch(0.7 0.2 300/0.35) } 50%{ box-shadow:0 14px 52px oklch(0.6 0.2 300/0.7), 0 0 0 13px oklch(0.7 0.2 300/0) } }
-  @keyframes cardRise { 0%{ opacity:0; transform:translateY(16px) scale(0.97) } 100%{ opacity:1; transform:translateY(0) scale(1) } }
-  @keyframes haloTurn { to { transform:rotate(360deg) } }
+  body { margin:0; background:#050409; color:#fff; font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif; -webkit-font-smoothing:antialiased; }
+  .page-shell { position:relative; width:100%; max-width:390px; height:100dvh; margin:0 auto; overflow:hidden; background:#070510; }
+  .page-bg, .page-bg::before, .page-bg::after { position:absolute; inset:0; content:""; pointer-events:none; }
+  .page-bg { background:radial-gradient(150% 70% at 50% -12%, rgba(153,96,255,.34), transparent 60%), radial-gradient(90% 60% at 92% 68%, rgba(38,190,190,.22), transparent 62%); }
+  .page-bg::before { opacity:.45; background-image:radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px); background-size:3px 3px; }
+  .page-bg::after { background:radial-gradient(120% 90% at 50% 50%, transparent 46%, rgba(0,0,0,.58) 100%); }
+  .scroll { position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding:54px 24px 34px; box-sizing:border-box; }
+  .eyebrow { font-family:'Space Grotesk',Arial,sans-serif; font-size:11.5px; letter-spacing:.2em; color:#cba6ff; font-weight:700; }
+  .title { margin-top:12px; font-size:34px; font-weight:950; line-height:1.12; letter-spacing:0; }
+  .copy { margin-top:9px; font-size:14px; line-height:1.75; color:rgba(255,255,255,.58); }
+  .panel { margin-top:20px; border-radius:24px; border:1px solid rgba(255,255,255,.11); background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035)); box-shadow:0 22px 64px rgba(0,0,0,.36); overflow:hidden; }
+  .panel-inner { padding:18px; }
+  .hero { display:flex; align-items:center; gap:14px; }
+  .avatar-ring { flex:0 0 auto; width:84px; height:84px; border-radius:50%; border:1px solid rgba(214,174,91,.7); background:linear-gradient(145deg,#fffdf8,#efe8d8); padding:4px; box-shadow:0 0 34px rgba(214,174,91,.25); }
+  .avatar-ring img { width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; }
+  .avatar-fallback { width:100%; height:100%; border-radius:50%; display:grid; place-items:center; color:#15120c; font-size:24px; font-weight:900; background:#fffdf8; }
+  .metric-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:15px; }
+  .metric { min-width:0; border-radius:15px; border:1px solid rgba(255,255,255,.1); background:rgba(0,0,0,.18); padding:10px 7px; text-align:center; }
+  .metric b { display:block; font-family:'Space Grotesk',Arial,sans-serif; font-size:21px; line-height:1; }
+  .metric span { display:block; margin-top:5px; font-size:11px; color:rgba(255,255,255,.46); white-space:nowrap; }
+  .section-title { margin-top:30px; font-size:13px; letter-spacing:.08em; color:rgba(255,255,255,.52); font-weight:900; }
+  .row-list { display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+  .type-row { border-radius:17px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.045); padding:12px 13px; }
+  .type-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .type-name { display:flex; align-items:center; gap:10px; min-width:0; font-weight:900; }
+  .crest-mini { width:38px; height:38px; flex:0 0 auto; border-radius:12px; border:1px solid rgba(214,174,91,.5); background:linear-gradient(180deg,#fffdf8,#f4efe4); padding:3px; box-shadow:0 0 16px var(--glow); }
+  .crest-mini img { width:100%; height:100%; object-fit:contain; display:block; border-radius:9px; }
+  .type-count { flex:0 0 auto; font-size:13px; font-weight:900; color:var(--color); padding:5px 11px; border-radius:999px; border:1px solid var(--ring); background:rgba(255,255,255,.04); }
+  .bar { height:7px; border-radius:999px; background:rgba(255,255,255,.08); margin-top:10px; overflow:hidden; }
+  .bar > span { display:block; height:100%; width:var(--w); border-radius:999px; background:linear-gradient(90deg, var(--color), rgba(255,255,255,.75)); box-shadow:0 0 12px var(--glow); }
+  .friend-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+  .friend-card { min-width:0; border-radius:18px; border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.045); padding:10px 7px 9px; text-align:center; overflow:hidden; }
+  .friend-photo { width:58px; height:58px; margin:0 auto; border-radius:50%; border:1px solid rgba(214,174,91,.52); background:rgba(255,255,255,.08); overflow:hidden; box-shadow:0 0 18px var(--glow); }
+  .friend-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+  .friend-name { margin-top:8px; font-size:13px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .friend-type { margin-top:3px; font-size:10.5px; color:var(--color); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .status-pill { display:inline-flex; margin-top:6px; padding:3px 7px; border-radius:999px; background:rgba(255,255,255,.075); color:rgba(255,255,255,.56); font-size:10px; }
+  .empty { margin-top:12px; border-radius:22px; border:1px dashed rgba(255,255,255,.2); background:rgba(255,255,255,.035); padding:22px 18px; text-align:center; }
+  .empty strong { display:block; font-size:18px; line-height:1.4; }
+  .empty span { display:block; margin-top:8px; font-size:13px; line-height:1.7; color:rgba(255,255,255,.56); }
+  .button { width:100%; height:56px; border-radius:999px; border:1px solid rgba(255,255,255,.2); cursor:pointer; font-family:inherit; font-size:16px; font-weight:950; color:#fff; }
+  .button.primary { background:linear-gradient(100deg,#8758ff,#d94fa8,#4e9fff); box-shadow:0 15px 44px rgba(121,89,255,.3); }
+  .button.secondary { background:rgba(255,255,255,.06); margin-top:12px; color:rgba(255,255,255,.9); }
+  .link-button { display:block; width:100%; margin-top:16px; border:0; background:transparent; color:rgba(255,255,255,.46); font-family:inherit; font-size:13px; cursor:pointer; }
+  .toast { position:absolute; left:24px; right:24px; bottom:28px; z-index:10; padding:15px 18px; border-radius:18px; border:1px solid rgba(255,255,255,.16); background:rgba(12,10,24,.94); box-shadow:0 14px 36px rgba(0,0,0,.45); text-align:center; font-size:14px; line-height:1.55; color:rgba(255,255,255,.92); }
 </style>
-</helmet>
-
-<div class="alpha-app">
-
-  <!-- ambient -->
-  <div style="position:absolute; inset:0; z-index:0; overflow:hidden;">
-    <div style="position:absolute; inset:0; background:radial-gradient(140% 55% at 50% -8%, oklch(0.5 0.18 300/0.3), transparent 60%);"></div>
-    <div style="position:absolute; width:330px; height:330px; top:-80px; left:-70px; border-radius:50%; background:radial-gradient(circle, oklch(0.6 0.2 300/0.36), transparent 65%); filter:blur(20px); animation:floatA 16s ease-in-out infinite;"></div>
-    <div style="position:absolute; width:320px; height:320px; bottom:60px; right:-90px; border-radius:50%; background:radial-gradient(circle, oklch(0.64 0.2 195/0.32), transparent 65%); filter:blur(22px); animation:floatB 20s ease-in-out infinite;"></div>
-    <div style="position:absolute; inset:0; opacity:0.45; mix-blend-mode:overlay; background-image:radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size:3px 3px;"></div>
-    <div style="position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 50%, transparent 42%, rgba(0,0,0,0.6) 100%);"></div>
-  </div>
-
-  <!-- scroll content -->
-  <div class="alpha-scroll" style="z-index:1;">
-
-    <div style="height:58px;"></div>
-
-    <!-- header -->
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:0 24px;">
-      <div style="font-family:'Space Grotesk', sans-serif; font-size:11.5px; letter-spacing:0.2em; color:oklch(0.8 0.13 300);">LINE CREST WALL</div>
-      <div style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);">↗</div>
-    </div>
-    <div style="padding:14px 24px 0;">
-      <div style="font-size:36px; font-weight:900; letter-spacing:0.01em; line-height:1.1;">我的 AI 家徽牆</div>
-      <div style="font-size:14px; color:rgba(255,255,255,0.55); margin-top:8px;">LINE 好友圈 · <span style="font-family:'Space Grotesk', sans-serif; font-weight:700; color:#fff;">{{totalLabel}}</span> 位朋友 · {{typesLabel}}</div>
-    </div>
-
-    <!-- crest wall hero -->
-    <div style="margin:22px 24px 0; border-radius:26px; padding:18px 18px 20px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.035)); box-shadow:0 24px 70px rgba(0,0,0,0.34); overflow:hidden; position:relative; animation:cardRise 0.5s ease both;">
-      <div style="position:absolute; width:210px; height:210px; right:-68px; top:-70px; border-radius:50%; background:radial-gradient(circle, {{me.glow}}, transparent 68%);"></div>
-      <div style="position:relative; display:flex; align-items:center; gap:16px;">
-        <div style="position:relative; flex:0 0 auto; width:118px; height:118px; border-radius:26px; border:1px solid rgba(214,174,91,0.6); background:linear-gradient(180deg, #fffdf8, #f4efe4); padding:9px; box-shadow:0 18px 48px rgba(0,0,0,0.42), 0 0 34px {{me.glow}};">
-          <span style="position:absolute; inset:-8px; border-radius:32px; border:1px solid {{me.ring}}; opacity:0.36; animation:haloTurn 18s linear infinite;"></span>
-          <img src="{{me.portraitPath}}" alt="{{me.name}}" style="position:relative; display:block; width:100%; height:100%; object-fit:contain; border-radius:18px;">
-        </div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-family:'Space Grotesk', sans-serif; font-size:11px; letter-spacing:0.2em; color:{{me.color}};">MY CREST {{me.n}}</div>
-          <div style="font-size:27px; font-weight:900; line-height:1.12; margin-top:6px;">{{me.name}}</div>
-          <div style="font-size:13px; line-height:1.55; color:rgba(255,255,255,0.58); margin-top:8px; text-wrap:pretty;">你的家徽在好友圈中的位置已標記。</div>
-        </div>
-      </div>
-      <div style="position:relative; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px;">
-        <div style="border-radius:16px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.16); padding:10px 8px; text-align:center;">
-          <div style="font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:800; color:#fff;">{{totalLabel}}</div>
-          <div style="font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px;">好友家徽</div>
-        </div>
-        <div style="border-radius:16px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.16); padding:10px 8px; text-align:center;">
-          <div style="font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:800; color:#fff;">{{typesCount}}</div>
-          <div style="font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px;">已解鎖</div>
-        </div>
-        <div style="border-radius:16px; border:1px solid {{top.ring}}; background:{{top.soft}}; padding:10px 8px; text-align:center;">
-          <div style="font-size:13px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{top.name}}</div>
-          <div style="font-size:11px; color:rgba(255,255,255,0.48); margin-top:2px;">最多類型</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- crest wall -->
-    <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; padding:30px 24px 0;">好友家徽牆</div>
-    <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; padding:14px 24px 0;">
-      <sc-for list="{{wallTiles}}" as="tile" hint-placeholder-count="9">
-        <div style="min-width:0; border-radius:18px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); padding:10px 7px 9px; text-align:center; overflow:hidden;">
-          <div style="position:relative; width:70px; height:70px; margin:0 auto; border-radius:18px; border:1px solid rgba(214,174,91,0.46); background:linear-gradient(180deg, #fffdf8, #f4efe4); box-shadow:0 0 18px {{tile.glow}}; padding:4px;">
-            <img src="{{tile.portraitPath}}" alt="{{tile.name}}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:13px;">
-          </div>
-          <div style="font-size:14px; font-weight:900; color:rgba(255,255,255,0.94); margin-top:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{tile.initial}}</div>
-          <div style="font-size:10.5px; color:{{tile.color}}; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{tile.shortName}}</div>
-        </div>
-      </sc-for>
-    </div>
-
-    <!-- distribution -->
-    <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; padding:30px 24px 0;">原型分布</div>
-    <div style="display:flex; flex-direction:column; gap:10px; padding:14px 24px 0;">
-      <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
-        <div style="border-radius:16px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); backdrop-filter:blur(6px); padding:12px 14px;">
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <div style="display:flex; align-items:center; gap:11px;">
-              <div style="display:flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:13px; border:1px solid rgba(214,174,91,0.5); box-shadow:0 0 16px {{g.glow}}; background:linear-gradient(180deg, #fffdf8, #f4efe4); padding:3px; overflow:hidden;">
-                <img src="{{g.portraitPath}}" alt="{{g.name}}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:9px;">
-              </div>
-              <div style="font-size:17px; font-weight:700; color:rgba(255,255,255,0.95);">{{g.name}}</div>
-            </div>
-            <div style="font-size:13px; font-weight:700; color:{{g.color}}; padding:5px 12px; border-radius:999px; border:1px solid {{g.ring}}; background:rgba(255,255,255,0.03);">{{g.countLabel}}</div>
-          </div>
-          <div style="height:7px; border-radius:7px; background:rgba(255,255,255,0.08); overflow:hidden; margin-top:10px;">
-            <div style="height:100%; width:{{g.percentW}}; border-radius:7px; background:linear-gradient(90deg, {{g.color}}, rgba(255,255,255,0.65)); box-shadow:0 0 10px {{g.glow}};"></div>
-          </div>
-        </div>
-      </sc-for>
-    </div>
-
-    <!-- insights -->
-    <sc-if value="{{showInsights}}" hint-placeholder-val="{{ true }}">
-      <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; padding:34px 24px 0;">圈子洞察</div>
-
-      <!-- insight 1: more willing -->
-      <div style="margin:14px 24px 0; border-radius:20px; padding:20px; border:1px solid oklch(0.7 0.16 165/0.4); background:linear-gradient(150deg, oklch(0.7 0.16 165/0.13), rgba(255,255,255,0.03));">
-        <div style="font-size:16px; font-weight:800; line-height:1.5;">你的家徽牆比全台平均<br>更願意嘗試 AI</div>
-        <div style="margin-top:18px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:rgba(255,255,255,0.7); margin-bottom:6px;"><span>你的家徽牆</span><span style="font-family:'Space Grotesk', sans-serif; font-weight:700; color:oklch(0.82 0.15 160);">{{yourWillingness}}%</span></div>
-          <div style="height:9px; border-radius:9px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:{{yourW}}; border-radius:9px; background:linear-gradient(90deg, oklch(0.7 0.16 175), oklch(0.8 0.15 150)); box-shadow:0 0 12px oklch(0.7 0.18 160/0.6);"></div></div>
-          <div style="display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:rgba(255,255,255,0.55); margin:12px 0 6px;"><span>全台平均</span><span style="font-family:'Space Grotesk', sans-serif; font-weight:700; color:rgba(255,255,255,0.65);">{{avgWillingness}}%</span></div>
-          <div style="height:9px; border-radius:9px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:{{avgW}}; border-radius:9px; background:rgba(255,255,255,0.3);"></div></div>
-        </div>
-      </div>
-
-      <!-- insight 2: missing archetype -->
-      <div style="margin:14px 24px 0; border-radius:20px; padding:20px; border:1px dashed rgba(255,255,255,0.22); background:rgba(255,255,255,0.03); display:flex; align-items:center; gap:16px;">
-        <div style="position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center; width:58px; height:58px; border-radius:16px; border:1px dashed {{missing.ring}}; background:linear-gradient(180deg, rgba(255,253,248,0.92), rgba(244,239,228,0.9)); padding:4px; opacity:0.76; overflow:hidden;">
-          <img src="{{missing.portraitPath}}" alt="{{missing.name}}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:12px; filter:saturate(0.75);">
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:12.5px; color:rgba(255,255,255,0.55);">你的家徽牆缺少</div>
-          <div style="font-size:19px; font-weight:800; margin-top:3px;">{{missing.name}}</div>
-          <div style="font-size:12.5px; color:rgba(255,255,255,0.5); margin-top:5px; line-height:1.5;">0 位 · 也許你會是第一個遇見的人</div>
-        </div>
-      </div>
-    </sc-if>
-
-    <!-- CTAs -->
-    <div style="padding:32px 24px 36px;">
-      <button onClick="{{goFuture}}" style-active="transform:scale(0.97)" style="width:100%; height:58px; border-radius:999px; border:1px solid rgba(255,255,255,0.2); cursor:pointer; font-family:inherit; font-size:17px; font-weight:700; color:#fff; letter-spacing:0.06em; display:flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(100deg, oklch(0.68 0.2 292), oklch(0.64 0.21 326), oklch(0.7 0.19 256)); background-size:170% 170%; animation:ctaPulse 2.6s ease-in-out infinite, gshift 6s ease-in-out infinite;"><span style="width:9px; height:9px; border-radius:50%; background:oklch(0.95 0.05 150); box-shadow:0 0 8px #fff;"></span>開啟未來導航</button>
-      <button onClick="{{share}}" style-active="transform:scale(0.97)" style="width:100%; height:52px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:15px; font-weight:700; color:rgba(255,255,255,0.85); border:1px solid rgba(255,255,255,0.16); background:rgba(255,255,255,0.04); margin-top:12px;">分享我的 AI 家徽牆</button>
-      <div onClick="{{invite}}" style="text-align:center; margin-top:18px; font-size:13px; color:rgba(255,255,255,0.4); cursor:pointer; letter-spacing:0.04em;">邀請朋友一起測測看</div>
-    </div>
-
-  </div>
-
-  <sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
-    <div style="position:absolute; left:24px; right:24px; bottom:28px; z-index:50; padding:15px 18px; border-radius:18px; border:1px solid rgba(255,255,255,0.16); background:rgba(12,10,24,0.94); box-shadow:0 14px 36px rgba(0,0,0,0.45); backdrop-filter:blur(10px); text-align:center; font-size:14px; line-height:1.55; color:rgba(255,255,255,0.92);">{{toastMessage}}</div>
-  </sc-if>
-</div>
-</x-dc>
-<div id="alpha-fallback-friends" style="position:fixed; inset:0; z-index:9999; display:flex; justify-content:center; background:#050409; color:#fff; font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;">
-  <div style="position:relative; width:100%; max-width:390px; height:100dvh; overflow:hidden; background:#070510;">
-    <div style="position:absolute; inset:0; background:radial-gradient(140% 60% at 50% -10%, rgba(153,96,255,0.3), transparent 60%), radial-gradient(90% 62% at 85% 70%, rgba(38,190,190,0.22), transparent 62%);"></div>
-    <div style="position:absolute; inset:0; opacity:0.45; background-image:radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size:3px 3px;"></div>
-    <div id="fallback-friends-stage" style="position:relative; height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;"></div>
-  </div>
+</head>
+<body>
+<div class="page-shell">
+  <div class="page-bg"></div>
+  <main id="app" class="scroll"></main>
 </div>
 <script>
 (function () {
-  const arch = window.AI_SURVIVAL_ARCHETYPE_MAP || {
-    explorer: { n: '01', name: 'AI探險家', hue: 288, symbol: '◇' },
-    craftsman: { n: '02', name: 'AI工匠', hue: 255, symbol: '◆' },
-    guardian: { n: '03', name: 'AI守護者', hue: 210, symbol: '●' },
-    navigator: { n: '04', name: 'AI領航員', hue: 170, symbol: '▲' },
-    strategist: { n: '05', name: 'AI策士', hue: 135, symbol: '◎' },
-    inventor: { n: '06', name: 'AI發明家', hue: 95, symbol: '✦' },
-    trader: { n: '07', name: 'AI交易員', hue: 55, symbol: '◈' },
-    mentor: { n: '08', name: 'AI導師', hue: 28, symbol: '◉' },
-    builder: { n: '09', name: 'AI建造者', hue: 332, symbol: '▣' },
+  const app = document.getElementById('app');
+  const arch = window.AI_SURVIVAL_ARCHETYPE_MAP || {};
+  let state = { loading: true, error: '', data: null };
+  let toastTimer = null;
+
+  const statusCopy = {
+    compass: '已找到方向',
+    oriented: '想解鎖報告',
+    archetyped: '已完成測驗',
+    unknown: '剛加入',
   };
-  const stage = document.getElementById('fallback-friends-stage');
-  const distribution = [
-    { key: 'explorer', count: 8 },
-    { key: 'guardian', count: 3 },
-    { key: 'craftsman', count: 2 },
-    { key: 'inventor', count: 2 },
-    { key: 'mentor', count: 1 },
-  ];
-  const compassSegments = [
-    { key: 'compass', label: '指南針中心', count: 3, note: '已啟動深度導航', color: '#d7ad55' },
-    { key: 'oriented', label: '已校準方向', count: 4, note: '已表達想解鎖報告', color: '#76dfd3' },
-    { key: 'archetyped', label: '星軌區', count: 7, note: '已知道自己的 AI 原型', color: '#a982ff' },
-    { key: 'unknown', label: '迷霧區', count: 2, note: '還沒完成測驗或仍在觀望', color: '#8b90a8' },
-  ];
-  const initials = ['林','陳','王','李','張','黃','吳','劉','蔡','楊','許','鄭','謝','郭','洪','曾'];
-  function getType(key, fallback = 'explorer') {
-    const resolvedKey = arch[key] ? key : fallback;
-    const item = arch[resolvedKey];
+
+  function apiBase() {
+    return (localStorage.getItem('AI_SURVIVAL_API_BASE_URL') || window.AI_SURVIVAL_API_BASE_URL || 'https://ai-survivalapi-production.up.railway.app').replace(/\/$/, '');
+  }
+
+  function profileHeaders() {
     return {
-      key: resolvedKey,
-      ...item,
-      shortName: item.name.replace(/^AI/, ''),
-      portraitPath: item.imagePaths?.portrait || `./assets/archetypes/${resolvedKey}.png`,
-      color: `oklch(0.8 0.15 ${item.hue})`,
-      ring: `oklch(0.78 0.16 ${item.hue} / 0.55)`,
-      glow: `oklch(0.7 0.18 ${item.hue} / 0.4)`,
-      soft: `oklch(0.78 0.16 ${item.hue} / 0.13)`,
+      'X-Line-User-Id': localStorage.getItem('AI_SURVIVAL_LINE_USER_ID') || '',
+      'X-Line-Display-Name': localStorage.getItem('AI_SURVIVAL_LINE_DISPLAY_NAME') || '',
+      'X-Line-Picture-Url': localStorage.getItem('AI_SURVIVAL_LINE_PICTURE_URL') || '',
     };
   }
+
+  function getType(key) {
+    const item = arch[key] || arch.explorer || { name: 'AI探險家', n: '01', hue: 288 };
+    const hue = item.hue || item.colorHue || 288;
+    return {
+      key: key || 'explorer',
+      name: item.name || 'AI探險家',
+      shortName: (item.name || 'AI探險家').replace(/^AI/, ''),
+      n: item.n || item.id || '01',
+      portraitPath: item.imagePaths?.portrait || `./assets/archetypes/${key || 'explorer'}.png`,
+      color: `oklch(0.8 0.15 ${hue})`,
+      ring: `oklch(0.78 0.16 ${hue} / 0.55)`,
+      glow: `oklch(0.7 0.18 ${hue} / 0.4)`,
+    };
+  }
+
   function escapeHtml(text) {
     return String(text || '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
   }
-  function loadPrimary() {
-    try {
-      const raw = localStorage.getItem('aiSurvivalAlphaResult');
-      if (raw) return JSON.parse(raw).primaryType || 'explorer';
-    } catch (e) {}
-    return localStorage.getItem('primaryType') || 'explorer';
+
+  function ownerDisplayName() {
+    return localStorage.getItem('AI_SURVIVAL_LINE_DISPLAY_NAME') || state.data?.owner?.display_name || '你';
   }
+
+  function ownerPictureUrl() {
+    return localStorage.getItem('AI_SURVIVAL_LINE_PICTURE_URL') || state.data?.owner?.picture_url || '';
+  }
+
   function render() {
-    const me = getType(loadPrimary());
-    const total = distribution.reduce((sum, item) => sum + item.count, 0);
-    const compassTotal = compassSegments.reduce((sum, item) => sum + item.count, 0);
-    const compassCount = compassSegments.find((item) => item.key === 'compass')?.count || 0;
-    const fogCount = compassSegments.find((item) => item.key === 'unknown')?.count || 0;
-    const tiles = [];
-    let seed = 0;
-    distribution.forEach((row) => {
-      const type = getType(row.key);
-      for (let i = 0; i < row.count; i++) tiles.push({ ...type, initial: initials[(seed++) % initials.length] });
-    });
-    const top = getType(distribution[0].key);
-    stage.innerHTML = `
-      <div style="padding:58px 24px 36px;">
-        <div style="font-family:Arial,sans-serif; font-size:11.5px; letter-spacing:0.2em; color:#cba6ff;">SOCIAL COMPASS</div>
-        <div style="font-size:36px; font-weight:900; line-height:1.1; margin-top:14px;">我的 AI 指南針好友圈</div>
-        <div style="font-size:14px; color:rgba(255,255,255,0.55); margin-top:8px;">你的好友裡，已有 <b style="color:#fff;">${compassCount}</b> 人啟動指南針，還有 ${fogCount} 人仍在迷霧中。</div>
-        <div style="margin-top:22px; border-radius:26px; padding:18px; border:1px solid rgba(214,174,91,0.34); background:linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.035)); box-shadow:0 24px 70px rgba(0,0,0,0.34);">
-          <div style="display:flex; align-items:center; gap:16px;">
-            <div style="width:118px; height:118px; border-radius:26px; border:1px solid rgba(214,174,91,0.6); background:linear-gradient(180deg,#fffdf8,#f4efe4); padding:9px; box-shadow:0 18px 48px rgba(0,0,0,0.42), 0 0 34px ${me.glow};">
-              <img src="${me.portraitPath}" alt="${escapeHtml(me.name)}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:18px;">
+    if (state.loading) {
+      app.innerHTML = `
+        <div class="eyebrow">FRIEND TYPES</div>
+        <div class="title">正在讀取好友類型分佈</div>
+        <div class="copy">會依照透過你分享連結進來、並登入或完成測驗的朋友即時更新。</div>
+        <div class="panel"><div class="panel-inner">同步 LINE 資料中...</div></div>
+      `;
+      return;
+    }
+
+    const data = state.data || { friends: [], distribution: [], totals: {} };
+    const friends = data.friends || [];
+    const totals = data.totals || {};
+    const withResult = totals.withResult || 0;
+    const distribution = data.distribution || [];
+
+    app.innerHTML = `
+      <div class="eyebrow">FRIEND TYPES</div>
+      <div class="title">我的好友類型分佈</div>
+      <div class="copy">這裡只顯示透過你的分享連結進來，並完成登入或測驗的好友。LINE 不會直接提供完整好友名單。</div>
+
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="hero">
+            <div class="avatar-ring">${avatar(ownerPictureUrl(), ownerDisplayName())}</div>
+            <div style="min-width:0;">
+              <div style="font-size:12px; letter-spacing:.14em; color:rgba(255,255,255,.54); font-weight:900;">你的分享圈</div>
+              <div style="margin-top:5px; font-size:24px; line-height:1.2; font-weight:950; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(ownerDisplayName())}</div>
+              <div style="margin-top:7px; font-size:13px; line-height:1.55; color:rgba(255,255,255,.58);">朋友點你的連結登入後，頭像就會出現在下面。</div>
             </div>
-            <div style="flex:1;">
-              <div style="font-family:Arial,sans-serif; font-size:11px; letter-spacing:0.2em; color:${me.color};">MY CREST ${escapeHtml(me.n)}</div>
-              <div style="font-size:27px; font-weight:900; line-height:1.12; margin-top:6px;">${escapeHtml(me.name)}</div>
-              <div style="font-size:13px; line-height:1.55; color:rgba(255,255,255,0.58); margin-top:8px;">你的家徽已標記在好友圈星圖中。下一步，是校準自己的指南針。</div>
-            </div>
+          </div>
+          <div class="metric-grid">
+            <div class="metric"><b>${totals.friends || 0}</b><span>已加入</span></div>
+            <div class="metric"><b>${withResult}</b><span>已測完</span></div>
+            <div class="metric"><b>${totals.compass || 0}</b><span>有方向</span></div>
           </div>
         </div>
-        <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; margin-top:30px;">好友方向雷達</div>
-        <div style="margin-top:14px; border-radius:24px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.045); padding:16px;">
-          <div style="position:relative; width:230px; height:230px; margin:0 auto 16px; border-radius:50%; border:1px solid rgba(214,174,91,0.44); background:radial-gradient(circle at 50% 50%, rgba(214,174,91,0.18), rgba(118,223,211,0.08) 34%, rgba(169,130,255,0.08) 58%, rgba(139,144,168,0.08) 80%, transparent 100%); box-shadow:0 0 42px rgba(118,223,211,0.14);">
-            <div style="position:absolute; inset:34px; border-radius:50%; border:1px dashed rgba(255,255,255,0.18);"></div>
-            <div style="position:absolute; inset:72px; border-radius:50%; border:1px dashed rgba(255,255,255,0.22);"></div>
-            <div style="position:absolute; left:50%; top:50%; width:58px; height:58px; margin:-29px 0 0 -29px; border-radius:50%; border:1px solid rgba(214,174,91,0.76); background:rgba(214,174,91,0.16); display:flex; align-items:center; justify-content:center; font-size:25px; box-shadow:0 0 28px rgba(214,174,91,0.34);">⌖</div>
-            ${compassDots(compassSegments)}
+      </section>
+
+      <div class="section-title">好友類型分佈</div>
+      ${distribution.length ? `<div class="row-list">${distribution.map(typeRow).join('')}</div>` : emptyBlock('還沒有類型分佈', '當朋友完成測驗後，這裡會出現 AI 探險家、AI 工匠等好友類型比例。')}
+
+      <div class="section-title">好友頭像</div>
+      ${friends.length ? `<div class="friend-grid">${friends.map(friendCard).join('')}</div>` : emptyBlock('還沒有好友加入', '先把遊戲分享給朋友。朋友從你的連結登入後，頭像會真的出現在這裡。')}
+
+      <div class="section-title">方向狀態</div>
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="metric-grid">
+            <div class="metric"><b>${totals.compass || 0}</b><span>指南針</span></div>
+            <div class="metric"><b>${totals.oriented || 0}</b><span>想解鎖</span></div>
+            <div class="metric"><b>${totals.unknown || 0}</b><span>迷霧中</span></div>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            ${compassSegments.map(segmentCard).join('')}
-          </div>
+          <div class="copy">之後付費或解鎖深度報告的人，會移到「指南針」位置，形成更明確的方向感。</div>
         </div>
-        <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; margin-top:30px;">好友家徽牆 · ${total} 位朋友</div>
-        <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin-top:14px;">
-          ${tiles.map(tile).join('')}
-        </div>
-        <div style="font-size:13px; color:rgba(255,255,255,0.5); letter-spacing:0.04em; margin-top:30px;">圈子洞察</div>
-        <div style="margin-top:14px; border-radius:20px; padding:20px; border:1px solid ${top.ring}; background:linear-gradient(150deg, ${top.soft}, rgba(255,255,255,0.03));">
-          <div style="font-size:16px; font-weight:900; line-height:1.5;">你的圈子最多的是 ${escapeHtml(top.name)}</div>
-          <div style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:8px;">好友家徽牆比全台平均更願意嘗試 AI。</div>
-        </div>
-        <button data-action="future" style="${buttonStyle(true)} margin-top:28px;">啟動我的指南針</button>
-        <button data-action="share" style="${buttonStyle(false)} margin-top:12px;">分享我的 AI 指南針好友圈</button>
-        <button data-action="invite" style="width:100%; margin-top:18px; border:0; background:transparent; color:rgba(255,255,255,0.45); font-family:inherit; font-size:13px; cursor:pointer;">邀請朋友一起測測看</button>
+      </section>
+
+      <div style="margin-top:30px;">
+        <button class="button primary" data-action="share">分享遊戲給 LINE 好友</button>
+        <button class="button secondary" data-action="future">開啟未來導航</button>
+        <button class="link-button" data-action="refresh">重新整理好友分佈</button>
       </div>
     `;
     bind();
   }
-  function tile(item) {
-    return `<div style="min-width:0; border-radius:18px; border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); padding:10px 7px 9px; text-align:center; overflow:hidden;"><div style="width:70px; height:70px; margin:0 auto; border-radius:18px; border:1px solid rgba(214,174,91,0.46); background:linear-gradient(180deg,#fffdf8,#f4efe4); box-shadow:0 0 18px ${item.glow}; padding:4px;"><img src="${item.portraitPath}" alt="${escapeHtml(item.name)}" style="display:block; width:100%; height:100%; object-fit:contain; border-radius:13px;"></div><div style="font-size:14px; font-weight:900; color:rgba(255,255,255,0.94); margin-top:8px;">${escapeHtml(item.initial)}</div><div style="font-size:10.5px; color:${item.color}; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.shortName)}</div></div>`;
+
+  function avatar(src, name) {
+    if (src) return `<img src="${escapeHtml(src)}" alt="${escapeHtml(name)}">`;
+    return `<span class="avatar-fallback">${escapeHtml(String(name || '你').slice(0, 1))}</span>`;
   }
-  function compassDots(segments) {
-    const dots = [];
-    const radii = { compass: 36, oriented: 68, archetyped: 92, unknown: 108 };
-    let index = 0;
-    segments.forEach((segment) => {
-      for (let i = 0; i < segment.count; i++) {
-        const angle = ((index * 47 + i * 23) % 360) * Math.PI / 180;
-        const radius = radii[segment.key] || 90;
-        const x = 115 + Math.cos(angle) * radius;
-        const y = 115 + Math.sin(angle) * radius;
-        dots.push(`<span title="${escapeHtml(segment.label)}" style="position:absolute; left:${x}px; top:${y}px; width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%; background:${segment.color}; box-shadow:0 0 12px ${segment.color};"></span>`);
-        index += 1;
-      }
-    });
-    return dots.join('');
+
+  function typeRow(row) {
+    const type = getType(row.key);
+    const total = Math.max(1, state.data?.totals?.withResult || 0);
+    const percent = Math.round((row.count / total) * 100);
+    return `
+      <div class="type-row" style="--color:${type.color}; --ring:${type.ring}; --glow:${type.glow}; --w:${percent}%;">
+        <div class="type-head">
+          <div class="type-name"><span class="crest-mini"><img src="${type.portraitPath}" alt="${escapeHtml(type.name)}"></span><span>${escapeHtml(type.name)}</span></div>
+          <span class="type-count">${row.count} 位</span>
+        </div>
+        <div class="bar"><span></span></div>
+      </div>
+    `;
   }
-  function segmentCard(segment) {
-    return `<div style="border-radius:16px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.16); padding:12px;"><div style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><span style="font-size:13px; font-weight:900; color:#fff;">${escapeHtml(segment.label)}</span><b style="font-family:Arial,sans-serif; color:${segment.color};">${segment.count}</b></div><div style="font-size:11px; line-height:1.45; color:rgba(255,255,255,0.52); margin-top:5px;">${escapeHtml(segment.note)}</div></div>`;
+
+  function friendCard(friend) {
+    const type = getType(friend.primaryType || 'explorer');
+    return `
+      <div class="friend-card" style="--color:${type.color}; --glow:${type.glow};">
+        <div class="friend-photo">${avatar(friend.pictureUrl, friend.displayName || '好友')}</div>
+        <div class="friend-name">${escapeHtml(friend.displayName || 'LINE 好友')}</div>
+        <div class="friend-type">${escapeHtml(friend.primaryName || '尚未完成')}</div>
+        <span class="status-pill">${escapeHtml(statusCopy[friend.status] || '已加入')}</span>
+      </div>
+    `;
   }
-  function buttonStyle(primary) {
-    return `width:100%; height:${primary ? 58 : 52}px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:${primary ? 17 : 15}px; font-weight:900; color:#fff; border:1px solid rgba(255,255,255,0.2); background:${primary ? 'linear-gradient(100deg,#8758ff,#d94fa8,#4e9fff)' : 'rgba(255,255,255,0.06)'};`;
+
+  function emptyBlock(title, copy) {
+    return `<div class="empty"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(copy)}</span></div>`;
   }
-  function toast(message) {
-    const el = document.createElement('div');
-    el.textContent = message;
-    el.style.cssText = 'position:absolute; left:24px; right:24px; bottom:28px; z-index:6; padding:15px 18px; border-radius:18px; border:1px solid rgba(255,255,255,0.16); background:rgba(12,10,24,0.94); box-shadow:0 14px 36px rgba(0,0,0,0.45); text-align:center; font-size:14px; line-height:1.55; color:rgba(255,255,255,0.92);';
-    stage.appendChild(el);
-    setTimeout(() => el.remove(), 2200);
-  }
+
   function bind() {
-    stage.querySelectorAll('[data-action]').forEach((el) => {
-      el.addEventListener('click', () => {
+    app.querySelectorAll('[data-action]').forEach((el) => {
+      el.addEventListener('click', async () => {
         const action = el.getAttribute('data-action');
         if (action === 'future') window.location.href = './未來導航.dc.html';
-        if (action === 'share') toast('LINE 分享功能將於 LIFF 版本開啟');
-        if (action === 'invite') toast('LINE 邀請功能將於 LIFF 版本開啟');
+        if (action === 'refresh') load();
+        if (action === 'share') shareGame('friend_distribution_page');
       });
     });
   }
-  render();
-})();
-</script>
-<script type="text/x-dc" data-dc-script data-props="{
-  &quot;$preview&quot;: { &quot;width&quot;: 390, &quot;height&quot;: 844 },
-  &quot;showInsights&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
-  &quot;yourWillingness&quot;: { &quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 87, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 0, &quot;max&quot;: 100 },
-  &quot;avgWillingness&quot;: { &quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 54, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 0, &quot;max&quot;: 100 },
-  &quot;missingKey&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;builder&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;explorer&quot;, &quot;craftsman&quot;, &quot;guardian&quot;, &quot;navigator&quot;, &quot;strategist&quot;, &quot;inventor&quot;, &quot;trader&quot;, &quot;mentor&quot;, &quot;builder&quot;] }
-}">
-class Component extends DCLogic {
-  state = { toast: false, toastMessage: '' };
 
-  // TODO: remove fallback once every page fully consumes data/archetypes.js.
-  arch = window.AI_SURVIVAL_ARCHETYPE_MAP || {
-    explorer:   { n: '01', name: 'AI探險家', hue: 288, symbol: '◇' },
-    craftsman:  { n: '02', name: 'AI工匠',   hue: 255, symbol: '◆' },
-    guardian:   { n: '03', name: 'AI守護者', hue: 210, symbol: '●' },
-    navigator:  { n: '04', name: 'AI領航員', hue: 170, symbol: '▲' },
-    strategist: { n: '05', name: 'AI策士',   hue: 135, symbol: '◎' },
-    inventor:   { n: '06', name: 'AI發明家', hue: 95,  symbol: '✦' },
-    trader:     { n: '07', name: 'AI交易員', hue: 55,  symbol: '◈' },
-    mentor:     { n: '08', name: 'AI導師',   hue: 28,  symbol: '◉' },
-    builder:    { n: '09', name: 'AI建造者', hue: 332, symbol: '▣' },
-  };
-
-  mockData = {
-    distribution: [
-      { key: 'explorer',  count: 8 },
-      { key: 'guardian',  count: 3 },
-      { key: 'craftsman', count: 2 },
-      { key: 'inventor',  count: 2 },
-      { key: 'mentor',    count: 1 },
-    ],
-    avatarInitials: ['林','陳','王','李','張','黃','吳','劉','蔡','楊','許','鄭','謝','郭','洪','曾'],
-    insights: {
-      yourWillingness: 87,
-      avgWillingness: 54,
-      missingKey: 'builder',
-    },
-  };
-
-  componentWillUnmount() {
-    clearTimeout(this._toast);
+  function toast(message) {
+    clearTimeout(toastTimer);
+    document.querySelector('.toast')?.remove();
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = message;
+    document.querySelector('.page-shell').appendChild(el);
+    toastTimer = setTimeout(() => el.remove(), 2600);
   }
 
-  loadAlphaResult() {
+  async function shareGame(source) {
+    window.AI_SURVIVAL_TRACK?.track?.('clicked_share', { metadata: { source } });
+    const fallbackUrl = window.AI_SURVIVAL_LINE?.gameUrl?.({ profileId: localStorage.getItem('profileId') }) || location.href;
     try {
-      const raw = localStorage.getItem('aiSurvivalAlphaResult');
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return {
-      primaryType: localStorage.getItem('primaryType'),
-      secondaryType: localStorage.getItem('secondaryType'),
-      evolutionType: localStorage.getItem('evolutionType'),
-    };
+      if (!window.AI_SURVIVAL_LINE?.shareGame) throw new Error('LINE share is not initialized');
+      await window.AI_SURVIVAL_LINE.shareGame({
+        profileId: localStorage.getItem('profileId'),
+        title: 'AI 時代生存指數',
+        text: '我正在看我的好友類型分佈。你也來測看看，在超智能時代你屬於哪個位置？',
+      });
+      toast('已打開 LINE 好友列表');
+    } catch (error) {
+      await navigator.clipboard?.writeText?.(fallbackUrl).catch(() => null);
+      toast('目前無法開啟 LINE 好友列表，已改為複製分享連結');
+    }
   }
 
-  renderVals() {
-    const tint = (hue) => ({
-      color: `oklch(0.8 0.15 ${hue})`,
-      ring:  `oklch(0.78 0.16 ${hue} / 0.55)`,
-      glow:  `oklch(0.7 0.18 ${hue} / 0.4)`,
-      soft:  `oklch(0.78 0.16 ${hue} / 0.13)`,
-    });
+  async function load() {
+    state = { loading: true, error: '', data: null };
+    render();
+    await window.AI_SURVIVAL_LINE?.ready?.catch(() => null);
+    const params = new URLSearchParams();
+    const profileId = localStorage.getItem('profileId');
+    if (profileId) params.set('profileId', profileId);
+    const lineUserId = localStorage.getItem('AI_SURVIVAL_LINE_USER_ID');
+    if (!profileId && lineUserId) params.set('lineUserId', lineUserId);
 
-    const getArch = (key, fallback = 'explorer') => {
-      const resolvedKey = this.arch[key] ? key : fallback;
-      const a = this.arch[resolvedKey];
-      return {
-        key: resolvedKey,
-        n: a.n,
-        name: a.name,
-        shortName: a.name.replace(/^AI/, ''),
-        symbol: a.symbol,
-        portraitPath: a.imagePaths?.portrait || `./assets/archetypes/${resolvedKey}.png`,
-        ...tint(a.hue),
-      };
-    };
-
-    const alpha = this.loadAlphaResult();
-    const me = getArch(alpha.primaryType || 'explorer', 'explorer');
-
-    let seed = 0;
-    const nextInitial = () => this.mockData.avatarInitials[(seed++) % this.mockData.avatarInitials.length];
-
-    const total = this.mockData.distribution.reduce((s, d) => s + d.count, 0);
-    const groups = this.mockData.distribution.map(d => {
-      const a = getArch(d.key);
-      const percent = total ? Math.round((d.count / total) * 100) : 0;
-      return {
-        ...a,
-        count: d.count,
-        countLabel: `${d.count} 位`,
-        percentW: `${percent}%`,
-      };
-    });
-
-    const wallTiles = [];
-    this.mockData.distribution.forEach(d => {
-      const a = getArch(d.key);
-      for (let i = 0; i < d.count; i++) {
-        wallTiles.push({
-          ...a,
-          initial: nextInitial(),
-        });
-      }
-    });
-
-    const t = groups[0];
-    const top = {
-      name: t.name, count: t.count, color: t.color, ring: t.ring, glow: t.glow, soft: t.soft,
-    };
-
-    const missingKey = this.props.missingKey || this.mockData.insights.missingKey;
-    const missing = getArch(missingKey, 'builder');
-
-    const yourW = Math.max(0, Math.min(100, this.props.yourWillingness ?? this.mockData.insights.yourWillingness));
-    const avgW = Math.max(0, Math.min(100, this.props.avgWillingness ?? this.mockData.insights.avgWillingness));
-
-    return {
-      me,
-      groups,
-      wallTiles,
-      top,
-      totalLabel: String(total),
-      typesCount: String(this.mockData.distribution.length),
-      typesLabel: `${this.mockData.distribution.length} 種原型`,
-      missing,
-      showInsights: this.props.showInsights ?? true,
-      yourWillingness: yourW,
-      avgWillingness: avgW,
-      yourW: `${yourW}%`,
-      avgW: `${avgW}%`,
-      toast: this.state.toast,
-      toastMessage: this.state.toastMessage,
-      goFuture: () => { window.location.href = './未來導航.dc.html'; },
-      share: () => {
-        clearTimeout(this._toast);
-        this.setState({ toast: true, toastMessage: 'LINE 分享功能將於 LIFF 版本開啟' });
-        this._toast = setTimeout(() => this.setState({ toast: false }), 2200);
-      },
-      invite: () => {
-        clearTimeout(this._toast);
-        this.setState({ toast: true, toastMessage: 'LINE 邀請功能將於 LIFF 版本開啟' });
-        this._toast = setTimeout(() => this.setState({ toast: false }), 2200);
-      },
-    };
+    try {
+      const response = await fetch(`${apiBase()}/friends/wall?${params.toString()}`, {
+        headers: profileHeaders(),
+      });
+      const data = await response.json();
+      if (data?.owner?.id) localStorage.setItem('profileId', data.owner.id);
+      state = { loading: false, error: '', data };
+    } catch (error) {
+      state = { loading: false, error: String(error?.message || error), data: { friends: [], distribution: [], totals: {} } };
+      toast('好友類型分佈暫時讀取失敗');
+    }
+    render();
   }
-}
+
+  load();
+})();
 </script>
 </body>
 </html>

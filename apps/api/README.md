@@ -45,6 +45,44 @@ Response includes the quiz result plus:
 
 Placeholder endpoint. LINE signature verification is still TODO.
 
+### `POST /friends/referral`
+
+Creates a real friend relationship after a shared LIFF link is opened.
+
+The frontend sends `referrerProfileId` from the share URL and the current LINE
+profile through temporary Alpha headers:
+
+- `x-line-user-id`
+- `x-line-display-name`
+- `x-line-picture-url`
+
+The API upserts the current profile and writes:
+
+- `friend_links.owner_profile_id`
+- `friend_links.friend_profile_id`
+
+LINE does not expose a user's full friend list to LIFF. The friend wall is
+therefore built from invite/share relationships, not from the user's complete
+LINE contact list.
+
+### `GET /friends/wall`
+
+Returns the current user's friend type distribution.
+
+Input:
+
+- `profileId` query string, preferred when available
+- or `x-line-user-id` / `lineUserId` as Alpha fallback
+
+Response includes:
+
+- `owner`
+- `friends`
+- `distribution`
+- `totals`
+
+This powers the frontend page now labeled `我的好友類型分佈`.
+
 ## Local Supabase
 
 This workspace uses non-default local Supabase ports to avoid conflicts with other local projects:

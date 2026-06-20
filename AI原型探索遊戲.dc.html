@@ -362,7 +362,10 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
         'X-Line-Display-Name': localStorage.getItem('AI_SURVIVAL_LINE_DISPLAY_NAME') || 'Local Alpha User',
         'X-Line-Picture-Url': localStorage.getItem('AI_SURVIVAL_LINE_PICTURE_URL') || '',
       },
-      body: JSON.stringify({ answers: toApiAnswers(uiAnswers, scenarios) }),
+      body: JSON.stringify({
+        answers: toApiAnswers(uiAnswers, scenarios),
+        referrerProfileId: localStorage.getItem('AI_SURVIVAL_REFERRER_PROFILE_ID') || undefined,
+      }),
     });
 
     if (!response.ok) {

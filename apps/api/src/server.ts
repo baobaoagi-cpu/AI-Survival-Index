@@ -7,6 +7,7 @@ import { quizRoute } from "./routes/quiz.js";
 import { lineRoute } from "./routes/line.js";
 import { adminRoute } from "./routes/admin.js";
 import { eventsRoute } from "./routes/events.js";
+import { friendsRoute } from "./routes/friends.js";
 
 const env = readEnv();
 const app = new Hono();
@@ -33,6 +34,7 @@ app.route("/quiz", quizRoute);
 app.route("/line", lineRoute);
 app.route("/admin", adminRoute);
 app.route("/events", eventsRoute);
+app.route("/friends", friendsRoute);
 
 serve({ fetch: app.fetch, port: env.port });
 

@@ -72,7 +72,7 @@
 
       <div style="width:100%; max-width:320px; margin-top:20px; display:flex; flex-direction:column; gap:12px;">
         <button onClick="{{showDetail}}" style-active="transform:scale(0.97)" style="width:100%; height:58px; border-radius:999px; border:1px solid rgba(255,255,255,0.2); cursor:pointer; font-family:inherit; font-size:17px; font-weight:700; color:#fff; letter-spacing:0.06em; display:flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(100deg, oklch(0.68 0.2 292), oklch(0.64 0.21 326), oklch(0.7 0.19 256)); background-size:170% 170%; animation:ctaPulse 2.6s ease-in-out infinite, gshift 6s ease-in-out infinite;">看完整分析 <span style="font-size:19px;">→</span></button>
-        <button onClick="{{share}}" style-active="transform:scale(0.97)" style="width:100%; height:52px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:15px; font-weight:700; color:rgba(255,255,255,0.9); border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.05);">預覽分享卡</button>
+        <button onClick="{{share}}" style-active="transform:scale(0.97)" style="width:100%; height:52px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:15px; font-weight:700; color:rgba(255,255,255,0.9); border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.05);">分享給好友</button>
       </div>
 
       <div onClick="{{restart}}" style="margin-top:20px; font-size:13px; color:rgba(255,255,255,0.4); cursor:pointer; letter-spacing:0.04em;">重新探索</div>
@@ -170,7 +170,7 @@
 
     <!-- CTAs -->
     <div style="padding:34px 24px 36px;">
-      <button onClick="{{goFriends}}" style-active="transform:scale(0.97)" style="width:100%; height:58px; border-radius:999px; border:1px solid rgba(255,255,255,0.2); cursor:pointer; font-family:inherit; font-size:17px; font-weight:700; color:#fff; letter-spacing:0.06em; display:flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(100deg, oklch(0.68 0.2 292), oklch(0.64 0.21 326), oklch(0.7 0.19 256)); background-size:170% 170%; animation:ctaPulse 2.6s ease-in-out infinite, gshift 6s ease-in-out infinite;"><span style="width:9px; height:9px; border-radius:50%; background:oklch(0.95 0.05 150); box-shadow:0 0 8px #fff;"></span>查看我的 AI 好友圈</button>
+      <button onClick="{{goFriends}}" style-active="transform:scale(0.97)" style="width:100%; height:58px; border-radius:999px; border:1px solid rgba(255,255,255,0.2); cursor:pointer; font-family:inherit; font-size:17px; font-weight:700; color:#fff; letter-spacing:0.06em; display:flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(100deg, oklch(0.68 0.2 292), oklch(0.64 0.21 326), oklch(0.7 0.19 256)); background-size:170% 170%; animation:ctaPulse 2.6s ease-in-out infinite, gshift 6s ease-in-out infinite;"><span style="width:9px; height:9px; border-radius:50%; background:oklch(0.95 0.05 150); box-shadow:0 0 8px #fff;"></span>查看我的好友類型分佈</button>
       <button onClick="{{share}}" style-active="transform:scale(0.97)" style="width:100%; height:52px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:15px; font-weight:700; color:rgba(255,255,255,0.85); border:1px solid rgba(255,255,255,0.16); background:rgba(255,255,255,0.04); margin-top:12px;">分享我的演化路徑</button>
       <div onClick="{{restart}}" style="text-align:center; margin-top:18px; font-size:13px; color:rgba(255,255,255,0.4); cursor:pointer; letter-spacing:0.04em;">重新探索</div>
     </div>
@@ -301,7 +301,7 @@
         </div>
         <div style="width:100%; max-width:320px; margin-top:20px; display:flex; flex-direction:column; gap:12px;">
           <button data-action="detail" style="${buttonStyle(true)}">看完整分析 →</button>
-          <button data-action="share" style="${buttonStyle(false)}">預覽分享卡</button>
+          <button data-action="share" style="${buttonStyle(false)}">分享給好友</button>
         </div>
         <button data-action="restart" style="margin-top:20px; border:0; background:transparent; color:rgba(255,255,255,0.45); font-family:inherit; font-size:13px; cursor:pointer;">重新探索</button>
       </div>
@@ -319,7 +319,7 @@
         ${pathCard('02 · 第二天性', secondary)}
         ${pathCard('03 · 未來進化', future, progress)}
         ${reportUnlockPanel(current, secondary, future)}
-        <button data-action="friends" style="${buttonStyle(true)} margin-top:18px;">查看我的 AI 家徽牆</button>
+        <button data-action="friends" style="${buttonStyle(true)} margin-top:18px;">查看我的好友類型分佈</button>
         <button data-action="share" style="${buttonStyle(false)} margin-top:12px;">分享我的演化路徑</button>
         <button data-action="restart" style="width:100%; margin-top:18px; border:0; background:transparent; color:rgba(255,255,255,0.45); font-family:inherit; font-size:13px; cursor:pointer;">重新探索</button>
       </div>
@@ -428,17 +428,33 @@
       }),
     }).catch(() => null);
   }
+  async function shareGame(source, metadata) {
+    trackIntent('clicked_share', { source, ...(metadata || {}) });
+    const fallbackUrl = window.AI_SURVIVAL_LINE?.gameUrl?.({ profileId: localStorage.getItem('profileId') }) || location.href;
+    try {
+      if (!window.AI_SURVIVAL_LINE?.shareGame) throw new Error('LINE share is not initialized');
+      await window.AI_SURVIVAL_LINE.shareGame({
+        profileId: localStorage.getItem('profileId'),
+        title: 'AI 時代生存指數',
+        text: '我剛測出我的 AI 原型。你也來測看看，在超智能時代你屬於哪個位置？',
+      });
+      toast('已打開 LINE 好友列表');
+    } catch (error) {
+      await navigator.clipboard?.writeText?.(fallbackUrl).catch(() => null);
+      toast('目前無法開啟 LINE 好友列表，已改為複製分享連結');
+    }
+  }
   function bind() {
     stage.querySelectorAll('[data-action]').forEach((el) => {
-      el.addEventListener('click', () => {
+      el.addEventListener('click', async () => {
         const action = el.getAttribute('data-action');
         if (action === 'detail') detail = true;
-        if (action === 'share') shareOpen = true;
+        if (action === 'share') { shareOpen = false; render(); await shareGame('result_page'); return; }
         if (action === 'closeShare') shareOpen = false;
-        if (action === 'notify') { shareOpen = false; render(); trackIntent('clicked_share', { source: 'share_card_modal' }); toast('LINE 分享功能將於 LIFF 版本開啟'); return; }
+        if (action === 'notify') { shareOpen = false; render(); await shareGame('share_card_modal'); return; }
         if (action === 'shallowReport') {
           trackIntent('clicked_shallow_report_unlock', { unlockType: 'share_2_friends', reportContext: el.getAttribute('data-report-context') });
-          toast('已記錄：你想用分享解鎖淺度報告。LIFF 分享上線後會計算 2 位好友。');
+          await shareGame('shallow_report_unlock', { unlockType: 'share_2_friends', reportContext: el.getAttribute('data-report-context') });
           return;
         }
         if (action === 'deepReportIntent') {
