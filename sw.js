@@ -1,7 +1,15 @@
-const CACHE_NAME = "ai-survival-alpha-v2";
+const CACHE_NAME = "ai-survival-alpha-v3";
 const APP_SHELL = [
   "/",
   "/index.html",
+  "/quiz",
+  "/quiz.html",
+  "/result",
+  "/result.html",
+  "/friends",
+  "/friends.html",
+  "/navigation",
+  "/navigation.html",
   "/runtime-config.js",
   "/alpha-app.css",
   "/support.js",

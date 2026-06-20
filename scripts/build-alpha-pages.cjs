@@ -7,6 +7,13 @@ const apiBaseUrl = process.env.AI_SURVIVAL_API_BASE_URL || 'https://ai-survivala
 const htmlFiles = readdirSync(root)
   .filter((file) => file.endsWith('.dc.html'))
   .sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+const pageAliases = new Map([
+  ['AI\u6642\u4ee3\u751f\u5b58\u6307\u6578.dc.html', 'index.html'],
+  ['AI\u539f\u578b\u63a2\u7d22\u904a\u6232.dc.html', 'quiz.html'],
+  ['AI\u539f\u578b\u6f14\u5316\u7d50\u679c.dc.html', 'result.html'],
+  ['\u6211\u7684AI\u670b\u53cb\u5708.dc.html', 'friends.html'],
+  ['\u672a\u4f86\u5c0e\u822a.dc.html', 'navigation.html'],
+]);
 const staticFiles = ['support.js','alpha-app.css','tracking.js','line-liff.js','manifest.webmanifest','sw.js','.thumbnail','data/archetypes.js','data/state-modifiers.js','data/zodiac-modifiers.js','assets/pwa/icon.svg','assets/archetypes/.gitkeep','assets/archetypes/archetype-crests-preview.png','assets/archetypes/builder.png','assets/archetypes/craftsman.png','assets/archetypes/explorer.png','assets/archetypes/guardian.png','assets/archetypes/inventor.png','assets/archetypes/manifest.json','assets/archetypes/mentor.png','assets/archetypes/navigator.png','assets/archetypes/README.md','assets/archetypes/strategist.png','assets/archetypes/trader.png','assets/placeholders/.gitkeep','assets/scenes/.gitkeep','assets/scenes/options/manifest.json','assets/scenes/options/scene-01-a.png','assets/scenes/options/scene-01-b.png','assets/scenes/options/scene-01-c.png','assets/scenes/options/scene-02-a.png','assets/scenes/options/scene-02-b.png','assets/scenes/options/scene-02-c.png','assets/scenes/options/scene-03-a.png','assets/scenes/options/scene-03-b.png','assets/scenes/options/scene-03-c.png','assets/scenes/options/scene-04-a.png','assets/scenes/options/scene-04-b.png','assets/scenes/options/scene-04-c.png','assets/scenes/options/scene-05-a.png','assets/scenes/options/scene-05-b.png','assets/scenes/options/scene-05-c.png','assets/scenes/options/scene-06-a.png','assets/scenes/options/scene-06-b.png','assets/scenes/options/scene-06-c.png','assets/share-cards/.gitkeep'];
 const liffId = process.env.AI_SURVIVAL_LIFF_ID || '';
 const requireLineLogin = process.env.AI_SURVIVAL_REQUIRE_LINE_LOGIN === 'true';
@@ -24,7 +31,13 @@ for (const file of htmlFiles) {
         '<script src="./data/archetypes.js"></script>',
         '<script src="./runtime-config.js"></script>\n<script src="./line-liff.js"></script>\n<script src="./tracking.js"></script>\n<script src="./data/archetypes.js"></script>',
       );
-  writeFileSync(join(outDir, file), injectPwaTags(withConfig), 'utf8');
+  writeFileSync(join(outDir, file), normalizeRoutes(injectPwaTags(withConfig)), 'utf8');
+}
+
+for (const [file, alias] of pageAliases) {
+  const sourcePath = join(outDir, file);
+  if (!existsSync(sourcePath) || alias === 'index.html') continue;
+  writeFileSync(join(outDir, alias), normalizeRoutes(readFileSync(sourcePath, 'utf8')), 'utf8');
 }
 
 for (const file of staticFiles) {
@@ -47,7 +60,7 @@ writeFileSync(
   'utf8',
 );
 const entryFile = htmlFiles.find((file) => file.includes('\u751f\u5b58\u6307\u6578')) || htmlFiles[0];
-writeFileSync(join(outDir, 'index.html'), readFileSync(join(outDir, entryFile), 'utf8'), 'utf8');
+writeFileSync(join(outDir, 'index.html'), normalizeRoutes(readFileSync(join(outDir, entryFile), 'utf8')), 'utf8');
 writeFileSync(join(outDir, '_headers'), `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
 
 console.info('Alpha Pages bundle ready: dist-alpha');
@@ -59,6 +72,16 @@ function copyFile(sourceRelative, targetRelative = sourceRelative) {
   if (!existsSync(sourcePath) || statSync(sourcePath).isDirectory()) return;
   mkdirSync(dirname(targetPath), { recursive: true });
   copyFileSync(sourcePath, targetPath);
+}
+
+function normalizeRoutes(html) {
+  let output = html;
+  for (const [file, alias] of pageAliases) {
+    const target = alias === 'index.html' ? './' : `./${alias.replace(/\.html$/, '')}`;
+    output = output.split(`./${file}`).join(target);
+    output = output.split(file).join(alias);
+  }
+  return output;
 }
 
 function injectPwaTags(html) {
