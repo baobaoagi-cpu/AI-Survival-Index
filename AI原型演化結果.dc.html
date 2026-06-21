@@ -430,7 +430,6 @@
   }
   async function shareGame(source, metadata) {
     trackIntent('clicked_share', { source, ...(metadata || {}) });
-    const fallbackUrl = window.AI_SURVIVAL_LINE?.gameUrl?.({ profileId: localStorage.getItem('profileId') }) || location.href;
     try {
       if (!window.AI_SURVIVAL_LINE?.shareGame) throw new Error('LINE share is not initialized');
       await window.AI_SURVIVAL_LINE.shareGame({
@@ -440,6 +439,11 @@
       });
       toast('已打開 LINE 好友列表');
     } catch (error) {
+      const fallbackUrl = await window.AI_SURVIVAL_LINE?.permanentGameUrl?.({
+        profileId: localStorage.getItem('profileId'),
+        source: `${source}_copy_fallback`,
+        metadata: metadata || {},
+      }) || window.AI_SURVIVAL_LINE?.gameUrl?.({ profileId: localStorage.getItem('profileId') }) || location.href;
       await navigator.clipboard?.writeText?.(fallbackUrl).catch(() => null);
       toast('目前無法開啟 LINE 好友列表，已改為複製分享連結');
     }

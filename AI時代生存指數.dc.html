@@ -298,7 +298,10 @@
       });
       toast('已開啟 LINE 好友列表');
     } catch (error) {
-      const url = window.AI_SURVIVAL_LINE?.gameUrl?.() || 'https://liff.line.me/2010457475-01KQvYnQ';
+      const url = await window.AI_SURVIVAL_LINE?.permanentGameUrl?.({
+        source: 'home_copy_fallback',
+        metadata: { placement: 'home_start_card' }
+      }) || window.AI_SURVIVAL_LINE?.gameUrl?.() || 'https://liff.line.me/2010457475-01KQvYnQ';
       await copyText(url);
       toast(FALLBACK_TEXT);
     }

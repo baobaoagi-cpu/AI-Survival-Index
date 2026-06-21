@@ -83,9 +83,59 @@
 
   function storeReferralFromUrl() {
     const params = new URLSearchParams(window.location.search);
+    const invite = params.get("invite") || params.get("inviteCode");
+    if (invite) localStorage.setItem("AI_SURVIVAL_INVITE_CODE", normalizeInviteCode(invite));
     const ref = params.get("ref") || params.get("refProfileId") || params.get("inviter");
     if (ref) localStorage.setItem("AI_SURVIVAL_REFERRER_PROFILE_ID", ref);
     return ref || localStorage.getItem("AI_SURVIVAL_REFERRER_PROFILE_ID") || "";
+  }
+
+  function normalizeInviteCode(inviteCode) {
+    return String(inviteCode || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  }
+
+  function storedInviteCode() {
+    return normalizeInviteCode(localStorage.getItem("AI_SURVIVAL_INVITE_CODE"));
+  }
+
+  async function trackInviteOpen(inviteCode) {
+    const code = normalizeInviteCode(inviteCode);
+    if (!code) return;
+    await fetch(apiBase() + "/friends/invite/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inviteCode: code }),
+      keepalive: true,
+    }).catch(() => null);
+  }
+
+  async function createInviteCode(options = {}) {
+    await ready;
+    const lineUserId = localStorage.getItem("AI_SURVIVAL_LINE_USER_ID");
+    if (!lineUserId || lineUserId.startsWith(LOCAL_ID_PREFIX)) return "";
+
+    const response = await fetch(apiBase() + "/friends/invite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...profileHeaders(),
+      },
+      body: JSON.stringify({
+        source: options.source || "share_button",
+        metadata: options.metadata || {},
+      }),
+      keepalive: true,
+    });
+    const data = await response.json().catch(() => null);
+    const inviteCode = normalizeInviteCode(data?.inviteCode);
+    if (inviteCode) {
+      localStorage.setItem("AI_SURVIVAL_LAST_CREATED_INVITE_CODE", inviteCode);
+      if (data?.ownerProfileId) {
+        localStorage.setItem("profileId", data.ownerProfileId);
+        localStorage.setItem("AI_SURVIVAL_PROFILE_LINE_USER_ID", lineUserId);
+      }
+    }
+    return inviteCode;
   }
 
   function setLocalProfile(profile) {
@@ -103,10 +153,11 @@
 
   async function syncReferral(profile) {
     const referrerProfileId = storeReferralFromUrl();
-    if (!referrerProfileId || !profile?.userId) return;
+    const inviteCode = storedInviteCode();
+    if ((!referrerProfileId && !inviteCode) || !profile?.userId) return;
 
     const currentProfileId = localStorage.getItem("profileId");
-    if (currentProfileId && currentProfileId === referrerProfileId) return;
+    if (!inviteCode && currentProfileId && currentProfileId === referrerProfileId) return;
 
     await fetch(apiBase() + "/friends/referral", {
       method: "POST",
@@ -117,8 +168,9 @@
         "X-Line-Picture-Url": profile.pictureUrl || "",
       },
       body: JSON.stringify({
-        referrerProfileId,
-        source: "line_liff_login",
+        ...(referrerProfileId ? { referrerProfileId } : {}),
+        ...(inviteCode ? { inviteCode } : {}),
+        source: inviteCode ? "line_liff_invite" : "line_liff_login",
       }),
       keepalive: true,
     })
@@ -156,7 +208,9 @@
   }
 
   async function init() {
-    storeReferralFromUrl();
+    const referrerProfileId = storeReferralFromUrl();
+    const inviteCode = storedInviteCode();
+    if (inviteCode) trackInviteOpen(inviteCode);
 
     if (!config.liffId) {
       window.AI_SURVIVAL_LINE_STATUS = {
@@ -231,8 +285,10 @@
 
   function gameUrl(extra = {}) {
     const params = new URLSearchParams();
+    const inviteCode = normalizeInviteCode(extra.inviteCode || localStorage.getItem("AI_SURVIVAL_LAST_CREATED_INVITE_CODE"));
+    if (inviteCode) params.set("invite", inviteCode);
     const profileId = extra.profileId || localStorage.getItem("profileId");
-    if (profileId) params.set("ref", profileId);
+    if (!inviteCode && profileId) params.set("ref", profileId);
 
     const liffUrl = config.liffId ? `https://liff.line.me/${config.liffId}` : "";
     const webUrl = `${window.location.origin}${window.location.pathname.includes(".html") ? "/" : window.location.pathname}`;
@@ -243,8 +299,13 @@
 
   async function permanentGameUrl(extra = {}) {
     const params = new URLSearchParams();
-    const profileId = await ensureProfileId(extra.profileId);
-    if (profileId) params.set("ref", profileId);
+    const inviteCode = normalizeInviteCode(extra.inviteCode || (await createInviteCode({
+      source: extra.source || "share_button",
+      metadata: extra.metadata || {},
+    })));
+    if (inviteCode) params.set("invite", inviteCode);
+    const profileId = inviteCode ? "" : await ensureProfileId(extra.profileId);
+    if (!inviteCode && profileId) params.set("ref", profileId);
 
     const endpointUrl = `${publicOrigin()}/`;
     const query = params.toString();
@@ -348,7 +409,11 @@
   }
 
   async function shareGame(options = {}) {
-    const url = options.url || (await permanentGameUrl(options));
+    const url = options.url || (await permanentGameUrl({
+      ...options,
+      source: options.source || "share_game",
+      metadata: options.metadata || {},
+    }));
     const title = options.title || copy.title;
     const text = options.text || copy.inviteText;
 

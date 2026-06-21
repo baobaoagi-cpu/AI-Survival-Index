@@ -365,6 +365,7 @@ window.AI_SURVIVAL_QUIZ_API = (function () {
       body: JSON.stringify({
         answers: toApiAnswers(uiAnswers, scenarios),
         referrerProfileId: localStorage.getItem('AI_SURVIVAL_REFERRER_PROFILE_ID') || undefined,
+        inviteCode: localStorage.getItem('AI_SURVIVAL_INVITE_CODE') || undefined,
       }),
     });
 

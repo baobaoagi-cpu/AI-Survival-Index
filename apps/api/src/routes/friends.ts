@@ -2,7 +2,15 @@ import { Hono } from "hono";
 import type { ArchetypeKey } from "@ai-survival/shared";
 import { ARCHETYPE_BY_KEY } from "@ai-survival/shared";
 import { createSupabaseAdmin } from "../services/supabase-admin.js";
-import { linkReferral, QuizPersistenceError, upsertProfile } from "../services/quiz-session-service.js";
+import {
+  createShareInvite,
+  linkReferral,
+  markInviteAccepted,
+  markInviteOpened,
+  QuizPersistenceError,
+  resolveInviteOwnerProfileId,
+  upsertProfile,
+} from "../services/quiz-session-service.js";
 
 type ProfileRow = {
   id: string;
@@ -30,13 +38,69 @@ type FriendLinkRow = {
 
 export const friendsRoute = new Hono();
 
+friendsRoute.post("/invite", async (c) => {
+  const lineUserId = c.req.header("x-line-user-id")?.trim();
+  if (!lineUserId) {
+    return c.json({ error: "x-line-user-id is required" }, 400);
+  }
+
+  const body = (await c.req.json().catch(() => null)) as { source?: string; metadata?: Record<string, unknown> } | null;
+  const supabase = createSupabaseAdmin();
+  if (!supabase) {
+    return c.json({ persisted: false, reason: "supabase is not configured" }, 202);
+  }
+
+  try {
+    const invite = await createShareInvite(supabase, {
+      lineUserId,
+      ...(c.req.header("x-line-display-name") ? { displayName: c.req.header("x-line-display-name") as string } : {}),
+      ...(c.req.header("x-line-picture-url") ? { pictureUrl: c.req.header("x-line-picture-url") as string } : {}),
+      source: body?.source || "share_button",
+      metadata: body?.metadata || {},
+    });
+
+    return c.json({ persisted: true, ...invite });
+  } catch (error) {
+    if (error instanceof QuizPersistenceError) {
+      console.warn(error.message, error.cause);
+      return c.json({ persisted: false, reason: error.message }, 202);
+    }
+    throw error;
+  }
+});
+
+friendsRoute.post("/invite/open", async (c) => {
+  const body = (await c.req.json().catch(() => null)) as { inviteCode?: string } | null;
+  const inviteCode = body?.inviteCode?.trim();
+  if (!inviteCode) {
+    return c.json({ error: "inviteCode is required" }, 400);
+  }
+
+  const supabase = createSupabaseAdmin();
+  if (!supabase) {
+    return c.json({ persisted: false, reason: "supabase is not configured" }, 202);
+  }
+
+  try {
+    await markInviteOpened(supabase, inviteCode);
+    return c.json({ persisted: true });
+  } catch (error) {
+    if (error instanceof QuizPersistenceError) {
+      console.warn(error.message, error.cause);
+      return c.json({ persisted: false, reason: error.message }, 202);
+    }
+    throw error;
+  }
+});
+
 friendsRoute.post("/referral", async (c) => {
-  const body = (await c.req.json().catch(() => null)) as { referrerProfileId?: string; source?: string } | null;
+  const body = (await c.req.json().catch(() => null)) as { referrerProfileId?: string; inviteCode?: string; source?: string } | null;
   const referrerProfileId = body?.referrerProfileId?.trim();
+  const inviteCode = body?.inviteCode?.trim();
   const lineUserId = c.req.header("x-line-user-id")?.trim();
 
-  if (!referrerProfileId) {
-    return c.json({ error: "referrerProfileId is required" }, 400);
+  if (!referrerProfileId && !inviteCode) {
+    return c.json({ error: "referrerProfileId or inviteCode is required" }, 400);
   }
   if (!lineUserId) {
     return c.json({ error: "x-line-user-id is required" }, 400);
@@ -48,13 +112,20 @@ friendsRoute.post("/referral", async (c) => {
   }
 
   try {
+    const inviteOwnerProfileId = inviteCode ? await resolveInviteOwnerProfileId(supabase, inviteCode) : null;
+    const ownerProfileId = inviteOwnerProfileId || referrerProfileId;
+    if (!ownerProfileId) {
+      return c.json({ error: "inviteCode is invalid or expired" }, 400);
+    }
+
     const friendProfileId = await upsertProfile(supabase, {
       lineUserId,
       ...(c.req.header("x-line-display-name") ? { displayName: c.req.header("x-line-display-name") as string } : {}),
       ...(c.req.header("x-line-picture-url") ? { pictureUrl: c.req.header("x-line-picture-url") as string } : {}),
     });
-    await linkReferral(supabase, referrerProfileId, friendProfileId, body?.source || "line_liff_login");
-    return c.json({ persisted: true, profileId: friendProfileId });
+    await linkReferral(supabase, ownerProfileId, friendProfileId, inviteOwnerProfileId ? "line_liff_invite" : body?.source || "line_liff_login");
+    if (inviteCode) await markInviteAccepted(supabase, inviteCode);
+    return c.json({ persisted: true, profileId: friendProfileId, ownerProfileId, inviteCode: inviteCode || null });
   } catch (error) {
     if (error instanceof QuizPersistenceError) {
       console.warn(error.message, error.cause);
@@ -89,7 +160,7 @@ friendsRoute.get("/wall", async (c) => {
 
   const friendLinks = (links ?? []) as FriendLinkRow[];
   const friendIds = [...new Set(friendLinks.map((link) => link.friend_profile_id).filter(Boolean))];
-  const [profiles, results, events, memberships] = await Promise.all([
+  const [profiles, results, events, memberships, invites] = await Promise.all([
     friendIds.length
       ? supabase.from("profiles").select("id,line_user_id,display_name,picture_url,created_at").in("id", friendIds)
       : Promise.resolve({ data: [], error: null }),
@@ -111,6 +182,12 @@ friendsRoute.get("/wall", async (c) => {
     friendIds.length
       ? supabase.from("memberships").select("profile_id,status").in("profile_id", friendIds)
       : Promise.resolve({ data: [], error: null }),
+    supabase
+      .from("share_invites")
+      .select("invite_code,source,open_count,accept_count,completed_count,created_at,last_opened_at,last_accepted_at,last_completed_at")
+      .eq("owner_profile_id", owner.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
 
   const profilesById = new Map(((profiles.data ?? []) as ProfileRow[]).map((profile) => [profile.id, profile]));
@@ -149,6 +226,7 @@ friendsRoute.get("/wall", async (c) => {
     friends,
     distribution: buildDistribution(friends),
     totals: buildTotals(friends),
+    invites: invites.data ?? [],
   });
 });
 

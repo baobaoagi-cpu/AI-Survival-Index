@@ -45,18 +45,29 @@ Response includes the quiz result plus:
 
 Placeholder endpoint. LINE signature verification is still TODO.
 
+### `POST /friends/invite`
+
+Creates a server-side invite code before LINE share opens. New share links use:
+
+```text
+https://liff.line.me/<LIFF_ID>?invite=<inviteCode>
+```
+
+This prevents broken shares that do not carry an owner reference.
+
 ### `POST /friends/referral`
 
 Creates a real friend relationship after a shared LIFF link is opened.
 
-The frontend sends `referrerProfileId` from the share URL and the current LINE
-profile through temporary Alpha headers:
+The preferred flow sends `inviteCode` from the share URL and the current LINE
+profile through temporary Alpha headers. Legacy `referrerProfileId` links are
+still supported for old shares.
 
 - `x-line-user-id`
 - `x-line-display-name`
 - `x-line-picture-url`
 
-The API upserts the current profile and writes:
+The API resolves the invite owner, upserts the current profile, and writes:
 
 - `friend_links.owner_profile_id`
 - `friend_links.friend_profile_id`
