@@ -36,6 +36,11 @@ type FriendLinkRow = {
   created_at: string;
 };
 
+type FriendLinkView = FriendLinkRow & {
+  direction: "outgoing" | "incoming";
+  friend_profile_id: string;
+};
+
 export const friendsRoute = new Hono();
 
 friendsRoute.post("/invite", async (c) => {
@@ -149,16 +154,16 @@ friendsRoute.get("/wall", async (c) => {
   const { data: links, error: linksError } = await supabase
     .from("friend_links")
     .select("id,owner_profile_id,friend_profile_id,source,created_at")
-    .eq("owner_profile_id", owner.id)
+    .or(`owner_profile_id.eq.${owner.id},friend_profile_id.eq.${owner.id}`)
     .order("created_at", { ascending: false })
-    .limit(200);
+    .limit(400);
 
   if (linksError) {
     console.warn("Failed to load friend links", linksError);
     return c.json({ persisted: false, reason: linksError.message, owner, friends: [], distribution: [], totals: emptyTotals() }, 202);
   }
 
-  const friendLinks = (links ?? []) as FriendLinkRow[];
+  const friendLinks = normalizeFriendLinks(owner.id, (links ?? []) as FriendLinkRow[]);
   const friendIds = [...new Set(friendLinks.map((link) => link.friend_profile_id).filter(Boolean))];
   const [profiles, results, events, memberships, invites] = await Promise.all([
     friendIds.length
@@ -215,6 +220,7 @@ friendsRoute.get("/wall", async (c) => {
         evolutionType: result?.evolution_type ?? null,
         status: deriveStatus(profile.id, primaryType, paidProfileIds, eventProfileIds),
         source: link.source,
+        relationshipDirection: link.direction,
         linkedAt: link.created_at,
       };
     })
@@ -229,6 +235,21 @@ friendsRoute.get("/wall", async (c) => {
     invites: invites.data ?? [],
   });
 });
+
+function normalizeFriendLinks(ownerProfileId: string, links: FriendLinkRow[]): FriendLinkView[] {
+  const byFriendId = new Map<string, FriendLinkView>();
+  for (const link of links) {
+    const isOutgoing = link.owner_profile_id === ownerProfileId;
+    const friendProfileId = isOutgoing ? link.friend_profile_id : link.owner_profile_id;
+    if (!friendProfileId || friendProfileId === ownerProfileId || byFriendId.has(friendProfileId)) continue;
+    byFriendId.set(friendProfileId, {
+      ...link,
+      friend_profile_id: friendProfileId,
+      direction: isOutgoing ? "outgoing" : "incoming",
+    });
+  }
+  return [...byFriendId.values()];
+}
 
 async function resolveOwnerProfile(c: any, supabase: any): Promise<ProfileRow | null> {
   const profileId = c.req.query("profileId")?.trim();

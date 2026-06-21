@@ -224,11 +224,18 @@ export async function linkReferral(
   if (!ownerProfileId || !friendProfileId || ownerProfileId === friendProfileId) return;
 
   const { error } = await supabase.from("friend_links").upsert(
-    {
-      owner_profile_id: ownerProfileId,
-      friend_profile_id: friendProfileId,
-      source,
-    },
+    [
+      {
+        owner_profile_id: ownerProfileId,
+        friend_profile_id: friendProfileId,
+        source,
+      },
+      {
+        owner_profile_id: friendProfileId,
+        friend_profile_id: ownerProfileId,
+        source: `${source}_reciprocal`,
+      },
+    ],
     { onConflict: "owner_profile_id,friend_profile_id" },
   );
 

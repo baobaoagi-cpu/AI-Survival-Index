@@ -7,7 +7,7 @@ The share invite system prevents "friends played but did not appear in my friend
 The product must not rely only on a raw `profileId` URL parameter. Every deliberate share should create a trackable invite code that connects:
 
 ```text
-owner profile -> shared invite -> invited LINE user -> friend_links -> friend's latest archetype result
+owner profile -> shared invite -> invited LINE user -> reciprocal friend_links -> friend's latest archetype result
 ```
 
 ## Product Rules
@@ -18,6 +18,8 @@ owner profile -> shared invite -> invited LINE user -> friend_links -> friend's 
 4. If LINE share cannot open, the copied fallback URL must still contain `invite` or `ref`.
 5. If an invited friend already completed the quiz before, opening a new invite and logging in should still create the friend relationship.
 6. The friend wall is not the user's full LINE contact list. It is the set of users who entered through the owner's invite links and logged in.
+7. A successful invite relationship is reciprocal: the owner should see the invited friend, and the invited friend should see the owner.
+8. Shared friends are not inferred from LINE contacts. Overlap can only be shown when multiple users entered the product through tracked invite links.
 
 ## Owner Share Flow
 
@@ -42,6 +44,7 @@ Open LIFF URL with ?invite=<code>
 -> API resolves invite owner
 -> API upserts friend profile
 -> API upserts friend_links(owner, friend)
+-> API upserts friend_links(friend, owner)
 ```
 
 ## Friend Quiz Completion Flow
@@ -51,7 +54,7 @@ POST /quiz/score with answers + inviteCode
 -> API scores quiz
 -> API writes quiz_sessions / quiz_answers / archetype_results
 -> API resolves invite owner again
--> API upserts friend_links again as a safety net
+-> API upserts reciprocal friend_links again as a safety net
 -> API increments completed_count
 ```
 
@@ -126,7 +129,7 @@ Body:
 
 ### `POST /friends/referral`
 
-Creates or repairs the friend relationship.
+Creates or repairs the reciprocal friend relationship.
 
 Preferred body:
 
@@ -167,10 +170,11 @@ AI_SURVIVAL_PROFILE_LINE_USER_ID
 
 1. New share links contain `invite`.
 2. Old `ref` links still work.
-3. Friend login creates `friend_links`.
-4. Friend quiz completion creates or repairs `friend_links`.
+3. Friend login creates reciprocal `friend_links`.
+4. Friend quiz completion creates or repairs reciprocal `friend_links`.
 5. Friend wall displays invited friends after they log in or complete the quiz.
 6. Copied fallback links are not missing tracking codes.
+7. Invited friends also see the inviter in their own friend wall.
 
 ## Next Step
 

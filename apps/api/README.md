@@ -67,14 +67,16 @@ still supported for old shares.
 - `x-line-display-name`
 - `x-line-picture-url`
 
-The API resolves the invite owner, upserts the current profile, and writes:
+The API resolves the invite owner, upserts the current profile, and writes reciprocal links:
 
 - `friend_links.owner_profile_id`
 - `friend_links.friend_profile_id`
+- the reverse `friend_links(friend_profile_id, owner_profile_id)` row
 
 LINE does not expose a user's full friend list to LIFF. The friend wall is
 therefore built from invite/share relationships, not from the user's complete
-LINE contact list.
+LINE contact list. `/friends/wall` reads both outgoing and incoming links so
+legacy one-way invite records still appear on both users' walls.
 
 ### `GET /friends/wall`
 
