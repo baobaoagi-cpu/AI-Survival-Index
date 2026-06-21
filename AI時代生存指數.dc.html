@@ -319,15 +319,16 @@
     button.setAttribute('data-home-share-button', 'true');
     button.style.cssText = [
       'width:100%',
-      'height:54px',
-      'margin-top:12px',
+      'min-width:0',
+      'height:52px',
       'border-radius:999px',
       'cursor:pointer',
       'font-family:inherit',
-      'font-size:17px',
+      'font-size:15px',
       'font-weight:900',
       'color:#06130d',
-      'letter-spacing:0.06em',
+      'letter-spacing:0.03em',
+      'white-space:nowrap',
       'border:1px solid rgba(159,255,196,0.72)',
       'background:linear-gradient(100deg,#45f08e,#9fffc4)',
       'box-shadow:0 12px 34px rgba(69,240,142,0.28)'
@@ -343,15 +344,16 @@
     button.setAttribute('data-home-friend-types-button', 'true');
     button.style.cssText = [
       'width:100%',
-      'height:48px',
-      'margin-top:10px',
+      'min-width:0',
+      'height:52px',
       'border-radius:999px',
       'cursor:pointer',
       'font-family:inherit',
-      'font-size:16px',
+      'font-size:15px',
       'font-weight:850',
       'color:rgba(255,255,255,0.9)',
-      'letter-spacing:0.05em',
+      'letter-spacing:0.03em',
+      'white-space:nowrap',
       'border:1px solid rgba(255,255,255,0.22)',
       'background:rgba(255,255,255,0.075)',
       'box-shadow:0 10px 28px rgba(0,0,0,0.24)',
@@ -359,6 +361,21 @@
     ].join(';');
     button.addEventListener('click', window.AI_SURVIVAL_OPEN_FRIEND_TYPES);
     return button;
+  }
+
+  function makeSecondaryActionRow() {
+    const row = document.createElement('div');
+    row.setAttribute('data-home-secondary-actions', 'true');
+    row.style.cssText = [
+      'display:grid',
+      'grid-template-columns:repeat(2,minmax(0,1fr))',
+      'gap:10px',
+      'width:100%',
+      'margin-top:14px'
+    ].join(';');
+    row.appendChild(makeButton());
+    row.appendChild(makeFriendTypesButton());
+    return row;
   }
 
   function enhanceStartButton() {
@@ -392,12 +409,10 @@
     const dcStart = document.querySelector('button[onClick="{{onStart}}"], button[onclick="{{onStart}}"]');
     const target = fallbackStart || dcStart;
     if (!target) return;
-    if (!document.querySelector('[data-home-share-button]')) {
-      target.insertAdjacentElement('afterend', makeButton());
-    }
-    const shareButton = document.querySelector('[data-home-share-button]') || target;
-    if (!document.querySelector('[data-home-friend-types-button]')) {
-      shareButton.insertAdjacentElement('afterend', makeFriendTypesButton());
+    if (!document.querySelector('[data-home-secondary-actions]')) {
+      document.querySelector('[data-home-share-button]')?.remove();
+      document.querySelector('[data-home-friend-types-button]')?.remove();
+      target.insertAdjacentElement('afterend', makeSecondaryActionRow());
     }
   }
 
