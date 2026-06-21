@@ -179,6 +179,7 @@
 <script>
 (function initHomeShareEntry(){
   const SHARE_LABEL = '分享好友';
+  const FRIEND_TYPES_LABEL = '\u6211\u7684\u597d\u53cb\u985e\u578b';
   const FALLBACK_TEXT = '目前無法開啟 LINE 好友列表，已改為複製分享連結';
 
   function installStartCtaStyle() {
@@ -303,6 +304,14 @@
     }
   };
 
+  window.AI_SURVIVAL_OPEN_FRIEND_TYPES = function openFriendTypes() {
+    window.AI_SURVIVAL_TRACK?.track?.('friend_types_open', {
+      source: 'home_entry',
+      metadata: { placement: 'home_start_card' }
+    });
+    window.location.href = './我的AI朋友圈.dc.html';
+  };
+
   function makeButton() {
     const button = document.createElement('button');
     button.type = 'button';
@@ -324,6 +333,31 @@
       'box-shadow:0 12px 34px rgba(69,240,142,0.28)'
     ].join(';');
     button.addEventListener('click', window.AI_SURVIVAL_SHARE_HOME);
+    return button;
+  }
+
+  function makeFriendTypesButton() {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = FRIEND_TYPES_LABEL;
+    button.setAttribute('data-home-friend-types-button', 'true');
+    button.style.cssText = [
+      'width:100%',
+      'height:48px',
+      'margin-top:10px',
+      'border-radius:999px',
+      'cursor:pointer',
+      'font-family:inherit',
+      'font-size:16px',
+      'font-weight:850',
+      'color:rgba(255,255,255,0.9)',
+      'letter-spacing:0.05em',
+      'border:1px solid rgba(255,255,255,0.22)',
+      'background:rgba(255,255,255,0.075)',
+      'box-shadow:0 10px 28px rgba(0,0,0,0.24)',
+      'backdrop-filter:blur(8px)'
+    ].join(';');
+    button.addEventListener('click', window.AI_SURVIVAL_OPEN_FRIEND_TYPES);
     return button;
   }
 
@@ -354,12 +388,17 @@
 
   function installShareButton() {
     enhanceStartButton();
-    if (document.querySelector('[data-home-share-button]')) return;
     const fallbackStart = document.querySelector('#alpha-fallback-home button[onclick*="location.href"]');
     const dcStart = document.querySelector('button[onClick="{{onStart}}"], button[onclick="{{onStart}}"]');
     const target = fallbackStart || dcStart;
     if (!target) return;
-    target.insertAdjacentElement('afterend', makeButton());
+    if (!document.querySelector('[data-home-share-button]')) {
+      target.insertAdjacentElement('afterend', makeButton());
+    }
+    const shareButton = document.querySelector('[data-home-share-button]') || target;
+    if (!document.querySelector('[data-home-friend-types-button]')) {
+      shareButton.insertAdjacentElement('afterend', makeFriendTypesButton());
+    }
   }
 
   if (document.readyState === 'loading') {
