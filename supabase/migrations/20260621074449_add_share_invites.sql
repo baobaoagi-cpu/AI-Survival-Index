@@ -1,3 +1,13 @@
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
 create table if not exists public.share_invites (
   id uuid primary key default gen_random_uuid(),
   invite_code text not null unique,
