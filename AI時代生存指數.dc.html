@@ -181,6 +181,63 @@
   const SHARE_LABEL = '分享好友';
   const FALLBACK_TEXT = '目前無法開啟 LINE 好友列表，已改為複製分享連結';
 
+  function installStartCtaStyle() {
+    if (document.querySelector('[data-home-start-cta-style]')) return;
+    const style = document.createElement('style');
+    style.setAttribute('data-home-start-cta-style', 'true');
+    style.textContent = `
+      @keyframes homeStartBlink {
+        0%, 100% {
+          filter: brightness(1);
+          box-shadow:
+            0 18px 56px rgba(135, 88, 255, 0.5),
+            0 0 0 0 rgba(159, 215, 255, 0.32);
+        }
+        45% {
+          filter: brightness(1.18);
+          box-shadow:
+            0 22px 68px rgba(217, 79, 168, 0.62),
+            0 0 0 16px rgba(159, 215, 255, 0);
+        }
+      }
+
+      @keyframes homeStartSheen {
+        0% { transform: translateX(-130%) skewX(-16deg); opacity: 0; }
+        26% { opacity: 0.75; }
+        58%, 100% { transform: translateX(230%) skewX(-16deg); opacity: 0; }
+      }
+
+      .home-start-cta-strong {
+        position: relative;
+        overflow: hidden;
+        min-height: 96px !important;
+        margin-top: 28px !important;
+        font-size: 25px !important;
+        letter-spacing: 0.05em !important;
+        line-height: 1.15 !important;
+        animation: homeStartBlink 1.55s ease-in-out infinite !important;
+      }
+
+      .home-start-cta-strong::before {
+        content: "";
+        position: absolute;
+        top: -35%;
+        bottom: -35%;
+        left: 0;
+        width: 36%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        animation: homeStartSheen 2.1s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      .home-start-cta-strong span,
+      .home-start-cta-strong {
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function toast(message) {
     const old = document.querySelector('[data-home-share-toast]');
     if (old) old.remove();
@@ -270,7 +327,33 @@
     return button;
   }
 
+  function enhanceStartButton() {
+    installStartCtaStyle();
+    const fallbackStart = document.querySelector('#alpha-fallback-home button[onclick*="location.href"]');
+    const dcStart = document.querySelector('button[onClick="{{onStart}}"], button[onclick="{{onStart}}"]');
+
+    if (fallbackStart) {
+      const wastedSymbolGrid = fallbackStart.previousElementSibling;
+      if (wastedSymbolGrid && wastedSymbolGrid.children.length === 3) {
+        wastedSymbolGrid.style.display = 'none';
+      }
+      fallbackStart.textContent = '按此開始探索';
+      fallbackStart.classList.add('home-start-cta-strong');
+      fallbackStart.style.height = '96px';
+      fallbackStart.style.marginTop = '30px';
+      fallbackStart.style.fontSize = '25px';
+      fallbackStart.style.fontWeight = '950';
+      fallbackStart.style.boxShadow = '0 22px 68px rgba(135,88,255,0.52)';
+    }
+
+    if (dcStart) {
+      dcStart.classList.add('home-start-cta-strong');
+      dcStart.innerHTML = '<span>按此開始探索</span>';
+    }
+  }
+
   function installShareButton() {
+    enhanceStartButton();
     if (document.querySelector('[data-home-share-button]')) return;
     const fallbackStart = document.querySelector('#alpha-fallback-home button[onclick*="location.href"]');
     const dcStart = document.querySelector('button[onClick="{{onStart}}"], button[onclick="{{onStart}}"]');
