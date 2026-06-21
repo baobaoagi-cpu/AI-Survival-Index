@@ -44,6 +44,36 @@
     return `${publicOrigin()}/${path.replace(/^\.\//, "").replace(/^\//, "")}`;
   }
 
+  function profileHeaders() {
+    return {
+      "X-Line-User-Id": localStorage.getItem("AI_SURVIVAL_LINE_USER_ID") || "",
+      "X-Line-Display-Name": localStorage.getItem("AI_SURVIVAL_LINE_DISPLAY_NAME") || "",
+      "X-Line-Picture-Url": localStorage.getItem("AI_SURVIVAL_LINE_PICTURE_URL") || "",
+    };
+  }
+
+  async function ensureProfileId(explicitProfileId) {
+    if (explicitProfileId) return explicitProfileId;
+
+    const storedProfileId = localStorage.getItem("profileId");
+    if (storedProfileId) return storedProfileId;
+
+    await ready;
+
+    const lineUserId = localStorage.getItem("AI_SURVIVAL_LINE_USER_ID");
+    if (!lineUserId || lineUserId.startsWith(LOCAL_ID_PREFIX)) return "";
+
+    const response = await fetch(apiBase() + "/friends/wall", {
+      method: "GET",
+      headers: profileHeaders(),
+      keepalive: true,
+    });
+    const data = await response.json().catch(() => null);
+    const profileId = data?.owner?.id || data?.owner?.profileId || "";
+    if (profileId) localStorage.setItem("profileId", profileId);
+    return profileId;
+  }
+
   function storeReferralFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref") || params.get("refProfileId") || params.get("inviter");
@@ -201,7 +231,7 @@
 
   async function permanentGameUrl(extra = {}) {
     const params = new URLSearchParams();
-    const profileId = extra.profileId || localStorage.getItem("profileId");
+    const profileId = await ensureProfileId(extra.profileId);
     if (profileId) params.set("ref", profileId);
 
     const endpointUrl = `${publicOrigin()}/`;
