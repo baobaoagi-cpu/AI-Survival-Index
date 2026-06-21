@@ -41,6 +41,8 @@ type FriendLinkView = FriendLinkRow & {
   friend_profile_id: string;
 };
 
+type FriendGraphLinkRow = Pick<FriendLinkRow, "owner_profile_id" | "friend_profile_id">;
+
 export const friendsRoute = new Hono();
 
 friendsRoute.post("/invite", async (c) => {
@@ -197,6 +199,7 @@ friendsRoute.get("/wall", async (c) => {
 
   const profilesById = new Map(((profiles.data ?? []) as ProfileRow[]).map((profile) => [profile.id, profile]));
   const latestResultByProfile = latestByProfile((results.data ?? []) as ResultRow[]);
+  const mutualFriendCounts = await loadMutualFriendCounts(supabase, owner.id, friendIds);
   const eventProfileIds = new Set((events.data ?? []).map((event: any) => event.profile_id).filter(Boolean));
   const paidProfileIds = new Set(
     (memberships.data ?? [])
@@ -221,6 +224,7 @@ friendsRoute.get("/wall", async (c) => {
         status: deriveStatus(profile.id, primaryType, paidProfileIds, eventProfileIds),
         source: link.source,
         relationshipDirection: link.direction,
+        mutualFriendCount: mutualFriendCounts.get(profile.id) ?? 0,
         linkedAt: link.created_at,
       };
     })
@@ -249,6 +253,60 @@ function normalizeFriendLinks(ownerProfileId: string, links: FriendLinkRow[]): F
     });
   }
   return [...byFriendId.values()];
+}
+
+async function loadMutualFriendCounts(
+  supabase: any,
+  ownerProfileId: string,
+  friendIds: string[],
+): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  if (!friendIds.length) return counts;
+
+  const [outgoing, incoming] = await Promise.all([
+    supabase
+      .from("friend_links")
+      .select("owner_profile_id,friend_profile_id")
+      .in("owner_profile_id", friendIds)
+      .limit(3000),
+    supabase
+      .from("friend_links")
+      .select("owner_profile_id,friend_profile_id")
+      .in("friend_profile_id", friendIds)
+      .limit(3000),
+  ]);
+
+  if (outgoing.error || incoming.error) {
+    console.warn("Failed to load mutual friend graph", outgoing.error || incoming.error);
+    return counts;
+  }
+
+  const ownerFriendSet = new Set(friendIds);
+  const neighborSets = new Map<string, Set<string>>();
+  const addNeighbor = (profileId: string, neighborId: string) => {
+    if (!profileId || !neighborId || profileId === neighborId) return;
+    if (!neighborSets.has(profileId)) neighborSets.set(profileId, new Set());
+    neighborSets.get(profileId)?.add(neighborId);
+  };
+
+  for (const link of (outgoing.data ?? []) as FriendGraphLinkRow[]) {
+    addNeighbor(link.owner_profile_id, link.friend_profile_id);
+  }
+  for (const link of (incoming.data ?? []) as FriendGraphLinkRow[]) {
+    addNeighbor(link.friend_profile_id, link.owner_profile_id);
+  }
+
+  for (const friendId of friendIds) {
+    let count = 0;
+    const neighborSet = neighborSets.get(friendId) ?? new Set<string>();
+    for (const neighborId of neighborSet) {
+      if (neighborId === ownerProfileId || neighborId === friendId) continue;
+      if (ownerFriendSet.has(neighborId)) count += 1;
+    }
+    counts.set(friendId, count);
+  }
+
+  return counts;
 }
 
 async function resolveOwnerProfile(c: any, supabase: any): Promise<ProfileRow | null> {

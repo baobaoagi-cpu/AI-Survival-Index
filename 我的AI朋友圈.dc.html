@@ -50,6 +50,7 @@
   .friend-name { margin-top:8px; font-size:13px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .friend-type { margin-top:3px; font-size:10.5px; color:var(--color); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .status-pill { display:inline-flex; margin-top:6px; padding:3px 7px; border-radius:999px; background:rgba(255,255,255,.075); color:rgba(255,255,255,.56); font-size:10px; }
+  .mutual-pill { display:inline-flex; margin-top:5px; padding:3px 7px; border-radius:999px; border:1px solid rgba(214,174,91,.24); background:rgba(214,174,91,.11); color:#d6ae5b; font-size:10px; font-weight:900; }
   .empty { margin-top:12px; border-radius:22px; border:1px dashed rgba(255,255,255,.2); background:rgba(255,255,255,.035); padding:22px 18px; text-align:center; }
   .empty strong { display:block; font-size:18px; line-height:1.4; }
   .empty span { display:block; margin-top:8px; font-size:13px; line-height:1.7; color:rgba(255,255,255,.56); }
@@ -213,6 +214,7 @@
         <div class="friend-name">${escapeHtml(friend.displayName || 'LINE 好友')}</div>
         <div class="friend-type">${escapeHtml(friend.primaryName || '尚未完成')}</div>
         <span class="status-pill">${escapeHtml(statusCopy[friend.status] || '已加入')}</span>
+        <span class="mutual-pill">共同 ${Number(friend.mutualFriendCount || 0)} 位</span>
       </div>
     `;
   }

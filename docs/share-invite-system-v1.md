@@ -20,6 +20,7 @@ owner profile -> shared invite -> invited LINE user -> reciprocal friend_links -
 6. The friend wall is not the user's full LINE contact list. It is the set of users who entered through the owner's invite links and logged in.
 7. A successful invite relationship is reciprocal: the owner should see the invited friend, and the invited friend should see the owner.
 8. Shared friends are not inferred from LINE contacts. Overlap can only be shown when multiple users entered the product through tracked invite links.
+9. Mutual friend count is computed as the intersection of two in-product friend sets, not from LINE's private contact graph.
 
 ## Owner Share Flow
 
@@ -57,6 +58,26 @@ POST /quiz/score with answers + inviteCode
 -> API upserts reciprocal friend_links again as a safety net
 -> API increments completed_count
 ```
+
+## Mutual Friend Logic
+
+```text
+owner friend set = profiles connected to owner through friend_links
+friend friend set = profiles connected to that friend through friend_links
+mutual friends = owner friend set intersection friend friend set
+```
+
+The mutual count excludes the owner and the friend themselves.
+
+Example:
+
+```text
+A friends: B, C, D, E
+B friends: A, C, D, F
+A and B mutual friends: C, D
+```
+
+The first UI version only shows `mutualFriendCount`. It does not expose the full mutual friend list yet.
 
 ## Data Model
 

@@ -94,6 +94,11 @@ Response includes:
 - `distribution`
 - `totals`
 
+Each `friends[]` item includes graph metadata:
+
+- `relationshipDirection`: `outgoing` or `incoming`
+- `mutualFriendCount`: count of shared in-product friends between the owner and this friend
+
 This powers the frontend page now labeled `我的好友類型分佈`.
 
 ## Local Supabase
