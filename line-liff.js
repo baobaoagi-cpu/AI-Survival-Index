@@ -26,6 +26,8 @@
     cardBody: "30 \u79d2\u6e2c\u51fa\u4f60\u7684 AI \u4eba\u683c\u539f\u578b\uff0c\u770b\u770b\u4f60\u548c\u597d\u53cb\u8ab0\u5df2\u7d93\u627e\u5230\u65b9\u5411\u3002",
     cta: "\u958b\u59cb\u6e2c\u9a57",
   };
+  let preparedGameUrl = "";
+  let preparedGameUrlPromise = null;
 
   function publicOrigin() {
     if (window.location.protocol === "https:") return window.location.origin;
@@ -268,6 +270,39 @@
     return window.AI_SURVIVAL_LINE_STATUS;
   });
 
+  function prepareGameShare(options = {}) {
+    if (preparedGameUrl) return Promise.resolve(preparedGameUrl);
+    if (!preparedGameUrlPromise) {
+      preparedGameUrlPromise = permanentGameUrl({
+        ...options,
+        source: options.source || "share_prewarm",
+        metadata: {
+          ...(options.metadata || {}),
+          prewarm: true,
+        },
+      })
+        .then((url) => {
+          preparedGameUrl = url;
+          return url;
+        })
+        .catch((error) => {
+          preparedGameUrlPromise = null;
+          throw error;
+        });
+    }
+    return preparedGameUrlPromise;
+  }
+
+  ready.then((status) => {
+    if (status?.ready && status?.isLoggedIn) {
+      window.setTimeout(() => {
+        prepareGameShare({ source: "share_prewarm_ready" }).catch((error) => {
+          console.warn("Share prewarm failed", error);
+        });
+      }, 250);
+    }
+  });
+
   async function share(messages) {
     await ready;
 
@@ -409,11 +444,14 @@
   }
 
   async function shareGame(options = {}) {
-    const url = options.url || (await permanentGameUrl({
-      ...options,
-      source: options.source || "share_game",
-      metadata: options.metadata || {},
-    }));
+    const url =
+      options.url ||
+      preparedGameUrl ||
+      (await permanentGameUrl({
+        ...options,
+        source: options.source || "share_game",
+        metadata: options.metadata || {},
+      }));
     const title = options.title || copy.title;
     const text = options.text || copy.inviteText;
 
@@ -426,16 +464,24 @@
     });
 
     try {
-      return await share([flexMessage]);
+      const result = await share([flexMessage]);
+      if (!options.url && !preparedGameUrl) {
+        prepareGameShare({ source: "share_rewarm_after_success" }).catch(() => null);
+      }
+      return result;
     } catch (error) {
       window.AI_SURVIVAL_LAST_SHARE_ERROR = String(error?.message || error);
       console.warn("Flex share failed, retrying with text share.", error);
-      return share([
+      const result = await share([
         {
           type: "text",
           text: `${lead}\n${title}\n${text}\n${url}`,
         },
       ]);
+      if (!options.url && !preparedGameUrl) {
+        prepareGameShare({ source: "share_rewarm_after_text_success" }).catch(() => null);
+      }
+      return result;
     }
   }
 
@@ -443,6 +489,7 @@
     ready,
     share,
     shareGame,
+    prepareGameShare,
     gameUrl,
     permanentGameUrl,
     buildInviteFlex,
