@@ -177,6 +177,114 @@
   </div>
 </div>
 <script>
+(function initHomeShareEntry(){
+  const SHARE_LABEL = '分享好友';
+  const FALLBACK_TEXT = '目前無法開啟 LINE 好友列表，已改為複製分享連結';
+
+  function toast(message) {
+    const old = document.querySelector('[data-home-share-toast]');
+    if (old) old.remove();
+    const el = document.createElement('div');
+    el.setAttribute('data-home-share-toast', 'true');
+    el.textContent = message;
+    el.style.cssText = [
+      'position:fixed',
+      'left:50%',
+      'bottom:34px',
+      'z-index:10000',
+      'transform:translateX(-50%)',
+      'width:min(330px, calc(100vw - 40px))',
+      'padding:14px 18px',
+      'border-radius:18px',
+      'border:1px solid rgba(255,255,255,0.16)',
+      'background:rgba(10,8,20,0.94)',
+      'box-shadow:0 16px 42px rgba(0,0,0,0.52)',
+      'color:#fff',
+      'font-size:14px',
+      'line-height:1.45',
+      'text-align:center',
+      'font-family:inherit'
+    ].join(';');
+    document.body.appendChild(el);
+    window.setTimeout(() => el.remove(), 2600);
+  }
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (_) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const ok = document.execCommand('copy');
+      textarea.remove();
+      return ok;
+    }
+  }
+
+  window.AI_SURVIVAL_SHARE_HOME = async function shareHomeEntry() {
+    window.AI_SURVIVAL_TRACK?.track?.('share_intent', {
+      source: 'home_entry',
+      metadata: { placement: 'home_start_card' }
+    });
+
+    try {
+      if (!window.AI_SURVIVAL_LINE?.shareGame) throw new Error('LINE share is not initialized');
+      await window.AI_SURVIVAL_LINE.shareGame({
+        lead: '分享給你的一個測驗',
+        text: '我想知道你在超智能時代的位置。測完也能看到好友類型分佈。'
+      });
+      toast('已開啟 LINE 好友列表');
+    } catch (error) {
+      const url = window.AI_SURVIVAL_LINE?.gameUrl?.() || 'https://liff.line.me/2010457475-01KQvYnQ';
+      await copyText(url);
+      toast(FALLBACK_TEXT);
+    }
+  };
+
+  function makeButton() {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = SHARE_LABEL;
+    button.setAttribute('data-home-share-button', 'true');
+    button.style.cssText = [
+      'width:100%',
+      'height:54px',
+      'margin-top:12px',
+      'border-radius:999px',
+      'cursor:pointer',
+      'font-family:inherit',
+      'font-size:17px',
+      'font-weight:900',
+      'color:#06130d',
+      'letter-spacing:0.06em',
+      'border:1px solid rgba(159,255,196,0.72)',
+      'background:linear-gradient(100deg,#45f08e,#9fffc4)',
+      'box-shadow:0 12px 34px rgba(69,240,142,0.28)'
+    ].join(';');
+    button.addEventListener('click', window.AI_SURVIVAL_SHARE_HOME);
+    return button;
+  }
+
+  function installShareButton() {
+    if (document.querySelector('[data-home-share-button]')) return;
+    const fallbackStart = document.querySelector('#alpha-fallback-home button[onclick*="location.href"]');
+    const dcStart = document.querySelector('button[onClick="{{onStart}}"], button[onclick="{{onStart}}"]');
+    const target = fallbackStart || dcStart;
+    if (!target) return;
+    target.insertAdjacentElement('afterend', makeButton());
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', installShareButton, { once: true });
+  } else {
+    installShareButton();
+  }
+})();
 (function initYulingOrb(){
   const canvases = Array.from(document.querySelectorAll('[data-yuling-orb]'));
   if (!canvases.length) return;
