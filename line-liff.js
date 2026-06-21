@@ -417,14 +417,26 @@
     const title = options.title || copy.title;
     const text = options.text || copy.inviteText;
 
-    return share([
-      buildInviteFlex(url, {
-        title,
-        text,
-        lead: options.lead,
-        imageUrl: options.imageUrl,
-      }),
-    ]);
+    const lead = options.lead || copy.inviteLead;
+    const flexMessage = buildInviteFlex(url, {
+      title,
+      text,
+      lead,
+      imageUrl: options.imageUrl,
+    });
+
+    try {
+      return await share([flexMessage]);
+    } catch (error) {
+      window.AI_SURVIVAL_LAST_SHARE_ERROR = String(error?.message || error);
+      console.warn("Flex share failed, retrying with text share.", error);
+      return share([
+        {
+          type: "text",
+          text: `${lead}\n${title}\n${text}\n${url}`,
+        },
+      ]);
+    }
   }
 
   window.AI_SURVIVAL_LINE = {
