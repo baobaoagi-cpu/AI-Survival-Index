@@ -56,22 +56,29 @@
     if (explicitProfileId) return explicitProfileId;
 
     const storedProfileId = localStorage.getItem("profileId");
-    if (storedProfileId) return storedProfileId;
-
     await ready;
 
     const lineUserId = localStorage.getItem("AI_SURVIVAL_LINE_USER_ID");
+    const profileLineUserId = localStorage.getItem("AI_SURVIVAL_PROFILE_LINE_USER_ID");
+    if (storedProfileId && (!lineUserId || lineUserId.startsWith(LOCAL_ID_PREFIX) || profileLineUserId === lineUserId)) {
+      return storedProfileId;
+    }
     if (!lineUserId || lineUserId.startsWith(LOCAL_ID_PREFIX)) return "";
 
-    const response = await fetch(apiBase() + "/friends/wall", {
+    const url = new URL(apiBase() + "/friends/wall");
+    url.searchParams.set("lineUserId", lineUserId);
+    const response = await fetch(url.toString(), {
       method: "GET",
       headers: profileHeaders(),
       keepalive: true,
     });
     const data = await response.json().catch(() => null);
     const profileId = data?.owner?.id || data?.owner?.profileId || "";
-    if (profileId) localStorage.setItem("profileId", profileId);
-    return profileId;
+    if (profileId) {
+      localStorage.setItem("profileId", profileId);
+      localStorage.setItem("AI_SURVIVAL_PROFILE_LINE_USER_ID", lineUserId);
+    }
+    return profileId || storedProfileId || "";
   }
 
   function storeReferralFromUrl() {
@@ -83,6 +90,11 @@
 
   function setLocalProfile(profile) {
     if (!profile?.userId) return;
+    const previousLineUserId = localStorage.getItem("AI_SURVIVAL_LINE_USER_ID");
+    if (previousLineUserId && previousLineUserId !== profile.userId) {
+      localStorage.removeItem("profileId");
+      localStorage.removeItem("AI_SURVIVAL_PROFILE_LINE_USER_ID");
+    }
     localStorage.setItem("AI_SURVIVAL_LINE_USER_ID", profile.userId);
     if (profile.displayName) localStorage.setItem("AI_SURVIVAL_LINE_DISPLAY_NAME", profile.displayName);
     if (profile.pictureUrl) localStorage.setItem("AI_SURVIVAL_LINE_PICTURE_URL", profile.pictureUrl);

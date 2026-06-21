@@ -264,17 +264,23 @@
     render();
     await window.AI_SURVIVAL_LINE?.ready?.catch(() => null);
     const params = new URLSearchParams();
-    const profileId = localStorage.getItem('profileId');
-    if (profileId) params.set('profileId', profileId);
     const lineUserId = localStorage.getItem('AI_SURVIVAL_LINE_USER_ID');
-    if (!profileId && lineUserId) params.set('lineUserId', lineUserId);
+    const profileId = localStorage.getItem('profileId');
+    if (lineUserId && !lineUserId.startsWith('local-alpha-')) {
+      params.set('lineUserId', lineUserId);
+    } else if (profileId) {
+      params.set('profileId', profileId);
+    }
 
     try {
       const response = await fetch(`${apiBase()}/friends/wall?${params.toString()}`, {
         headers: profileHeaders(),
       });
       const data = await response.json();
-      if (data?.owner?.id) localStorage.setItem('profileId', data.owner.id);
+      if (data?.owner?.id) {
+        localStorage.setItem('profileId', data.owner.id);
+        if (lineUserId) localStorage.setItem('AI_SURVIVAL_PROFILE_LINE_USER_ID', lineUserId);
+      }
       state = { loading: false, error: '', data };
     } catch (error) {
       state = { loading: false, error: String(error?.message || error), data: { friends: [], distribution: [], totals: {} } };
