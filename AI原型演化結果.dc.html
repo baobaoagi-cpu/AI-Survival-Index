@@ -429,7 +429,12 @@
     }).catch(() => null);
   }
   async function shareGame(source, metadata) {
-    trackIntent('clicked_share', { source, ...(metadata || {}) });
+    toast('正在開啟 LINE 好友清單...');
+    trackIntent('clicked_share', {
+      source,
+      lineDiagnostics: window.AI_SURVIVAL_LINE?.getDiagnostics?.() || null,
+      ...(metadata || {})
+    });
     try {
       if (!window.AI_SURVIVAL_LINE?.shareGame) throw new Error('LINE share is not initialized');
       await window.AI_SURVIVAL_LINE.shareGame({

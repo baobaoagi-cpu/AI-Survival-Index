@@ -270,6 +270,30 @@
     return window.AI_SURVIVAL_LINE_STATUS;
   });
 
+  function diagnostics(extra = {}) {
+    let context = null;
+    try {
+      context = window.liff?.getContext?.() || null;
+    } catch (_) {
+      context = null;
+    }
+    return {
+      href: window.location.href,
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      visibilityState: document.visibilityState,
+      status: window.AI_SURVIVAL_LINE_STATUS || null,
+      context,
+      ...extra,
+    };
+  }
+
+  function trackLineEvent(eventName, metadata = {}) {
+    window.AI_SURVIVAL_TRACK?.track?.(eventName, {
+      metadata: diagnostics(metadata),
+    });
+  }
+
   function prepareGameShare(options = {}) {
     if (preparedGameUrl) return Promise.resolve(preparedGameUrl);
     if (!preparedGameUrlPromise) {
@@ -305,17 +329,33 @@
 
   async function share(messages) {
     await ready;
+    trackLineEvent("share_picker_attempt", {
+      messageTypes: Array.isArray(messages) ? messages.map((message) => message?.type).filter(Boolean) : [],
+    });
 
     if (!window.liff?.isLoggedIn?.()) {
+      trackLineEvent("share_picker_blocked", { reason: "not_logged_in" });
       window.liff?.login?.({ redirectUri: window.location.href });
       throw new Error("LINE login is required before sharing");
     }
 
     if (!window.liff.isApiAvailable("shareTargetPicker")) {
+      trackLineEvent("share_picker_blocked", { reason: "shareTargetPicker_unavailable" });
       throw new Error("LINE shareTargetPicker is not available");
     }
 
-    return window.liff.shareTargetPicker(messages, { isMultiple: true });
+    try {
+      const result = await window.liff.shareTargetPicker(messages, { isMultiple: true });
+      trackLineEvent("share_picker_resolved", { result });
+      return result;
+    } catch (error) {
+      trackLineEvent("share_picker_failed", {
+        errorName: error?.name || null,
+        errorCode: error?.code || null,
+        errorMessage: String(error?.message || error),
+      });
+      throw error;
+    }
   }
 
   function gameUrl(extra = {}) {
@@ -493,6 +533,7 @@
     gameUrl,
     permanentGameUrl,
     buildInviteFlex,
+    getDiagnostics: diagnostics,
     getStatus: () => window.AI_SURVIVAL_LINE_STATUS,
   };
 })();

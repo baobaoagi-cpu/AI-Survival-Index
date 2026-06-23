@@ -245,7 +245,13 @@
   }
 
   async function shareGame(source) {
-    window.AI_SURVIVAL_TRACK?.track?.('clicked_share', { metadata: { source } });
+    toast('正在開啟 LINE 好友清單...');
+    window.AI_SURVIVAL_TRACK?.track?.('clicked_share', {
+      metadata: {
+        source,
+        lineDiagnostics: window.AI_SURVIVAL_LINE?.getDiagnostics?.() || null
+      }
+    });
     try {
       if (!window.AI_SURVIVAL_LINE?.shareGame) throw new Error('LINE share is not initialized');
       await window.AI_SURVIVAL_LINE.shareGame({
