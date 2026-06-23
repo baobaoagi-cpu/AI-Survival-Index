@@ -28,6 +28,8 @@
   };
   let preparedGameUrl = "";
   let preparedGameUrlPromise = null;
+  let shareInFlight = false;
+  let shareInFlightAt = 0;
 
   function publicOrigin() {
     if (window.location.protocol === "https:") return window.location.origin;
@@ -484,44 +486,56 @@
   }
 
   async function shareGame(options = {}) {
-    const url =
-      options.url ||
-      preparedGameUrl ||
-      (await permanentGameUrl({
-        ...options,
-        source: options.source || "share_game",
-        metadata: options.metadata || {},
-      }));
-    const title = options.title || copy.title;
-    const text = options.text || copy.inviteText;
-
-    const lead = options.lead || copy.inviteLead;
-    const flexMessage = buildInviteFlex(url, {
-      title,
-      text,
-      lead,
-      imageUrl: options.imageUrl,
-    });
+    const now = Date.now();
+    if (shareInFlight && now - shareInFlightAt < 12000) {
+      trackLineEvent("share_game_deduped", { reason: "share_already_in_progress" });
+      throw new Error("LINE share is already in progress");
+    }
+    shareInFlight = true;
+    shareInFlightAt = now;
 
     try {
-      const result = await share([flexMessage]);
-      if (!options.url && !preparedGameUrl) {
-        prepareGameShare({ source: "share_rewarm_after_success" }).catch(() => null);
+      const url =
+        options.url ||
+        preparedGameUrl ||
+        (await permanentGameUrl({
+          ...options,
+          source: options.source || "share_game",
+          metadata: options.metadata || {},
+        }));
+      const title = options.title || copy.title;
+      const text = options.text || copy.inviteText;
+
+      const lead = options.lead || copy.inviteLead;
+      const flexMessage = buildInviteFlex(url, {
+        title,
+        text,
+        lead,
+        imageUrl: options.imageUrl,
+      });
+
+      try {
+        const result = await share([flexMessage]);
+        if (!options.url && !preparedGameUrl) {
+          prepareGameShare({ source: "share_rewarm_after_success" }).catch(() => null);
+        }
+        return result;
+      } catch (error) {
+        window.AI_SURVIVAL_LAST_SHARE_ERROR = String(error?.message || error);
+        console.warn("Flex share failed, retrying with text share.", error);
+        const result = await share([
+          {
+            type: "text",
+            text: `${lead}\n${title}\n${text}\n${url}`,
+          },
+        ]);
+        if (!options.url && !preparedGameUrl) {
+          prepareGameShare({ source: "share_rewarm_after_text_success" }).catch(() => null);
+        }
+        return result;
       }
-      return result;
-    } catch (error) {
-      window.AI_SURVIVAL_LAST_SHARE_ERROR = String(error?.message || error);
-      console.warn("Flex share failed, retrying with text share.", error);
-      const result = await share([
-        {
-          type: "text",
-          text: `${lead}\n${title}\n${text}\n${url}`,
-        },
-      ]);
-      if (!options.url && !preparedGameUrl) {
-        prepareGameShare({ source: "share_rewarm_after_text_success" }).catch(() => null);
-      }
-      return result;
+    } finally {
+      shareInFlight = false;
     }
   }
 

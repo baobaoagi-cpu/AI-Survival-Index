@@ -72,6 +72,7 @@
   const arch = window.AI_SURVIVAL_ARCHETYPE_MAP || {};
   let state = { loading: true, error: '', data: null };
   let toastTimer = null;
+  let shareBusy = false;
 
   const statusCopy = {
     compass: '已找到方向',
@@ -225,6 +226,9 @@
 
   function bind() {
     app.querySelectorAll('[data-action]').forEach((el) => {
+      if (el.getAttribute('data-action') === 'share') {
+        el.addEventListener('pointerdown', () => toast('正在準備分享...'), { passive: true });
+      }
       el.addEventListener('click', async () => {
         const action = el.getAttribute('data-action');
         if (action === 'future') window.location.href = './未來導航.dc.html';
@@ -245,6 +249,11 @@
   }
 
   async function shareGame(source) {
+    if (shareBusy) {
+      toast('分享視窗開啟中，請稍等...');
+      return;
+    }
+    shareBusy = true;
     toast('正在開啟 LINE 好友清單...');
     window.AI_SURVIVAL_TRACK?.track?.('clicked_share', {
       metadata: {
@@ -267,6 +276,8 @@
       }) || window.AI_SURVIVAL_LINE?.gameUrl?.({ profileId: localStorage.getItem('profileId') }) || location.href;
       await navigator.clipboard?.writeText?.(fallbackUrl).catch(() => null);
       toast('目前無法開啟 LINE 好友列表，已改為複製分享連結');
+    } finally {
+      shareBusy = false;
     }
   }
 

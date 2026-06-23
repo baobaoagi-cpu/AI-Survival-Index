@@ -237,6 +237,7 @@
   const stage = document.getElementById('fallback-result-stage');
   let shareOpen = false;
   let detail = false;
+  let shareBusy = false;
 
   function loadAlphaResult() {
     try {
@@ -429,6 +430,11 @@
     }).catch(() => null);
   }
   async function shareGame(source, metadata) {
+    if (shareBusy) {
+      toast('分享視窗開啟中，請稍等...');
+      return;
+    }
+    shareBusy = true;
     toast('正在開啟 LINE 好友清單...');
     trackIntent('clicked_share', {
       source,
@@ -451,10 +457,16 @@
       }) || window.AI_SURVIVAL_LINE?.gameUrl?.({ profileId: localStorage.getItem('profileId') }) || location.href;
       await navigator.clipboard?.writeText?.(fallbackUrl).catch(() => null);
       toast('目前無法開啟 LINE 好友列表，已改為複製分享連結');
+    } finally {
+      shareBusy = false;
     }
   }
   function bind() {
     stage.querySelectorAll('[data-action]').forEach((el) => {
+      const pendingAction = el.getAttribute('data-action');
+      if (['share', 'notify', 'shallowReport'].includes(pendingAction || '')) {
+        el.addEventListener('pointerdown', () => toast('正在準備分享...'), { passive: true });
+      }
       el.addEventListener('click', async () => {
         const action = el.getAttribute('data-action');
         if (action === 'detail') detail = true;

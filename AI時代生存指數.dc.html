@@ -181,6 +181,7 @@
   const SHARE_LABEL = '分享好友';
   const FRIEND_TYPES_LABEL = '\u6211\u7684\u597d\u53cb\u985e\u578b';
   const FALLBACK_TEXT = '目前無法開啟 LINE 好友列表，已改為複製分享連結';
+  let shareBusy = false;
 
   function installStartCtaStyle() {
     if (document.querySelector('[data-home-start-cta-style]')) return;
@@ -285,6 +286,16 @@
   }
 
   window.AI_SURVIVAL_SHARE_HOME = async function shareHomeEntry() {
+    if (shareBusy) {
+      toast('分享視窗開啟中，請稍等...');
+      return;
+    }
+    shareBusy = true;
+    document.querySelectorAll('[data-home-share-button]').forEach((button) => {
+      button.disabled = true;
+      button.style.opacity = '0.68';
+      button.style.cursor = 'wait';
+    });
     toast('正在開啟 LINE 好友清單...');
     window.AI_SURVIVAL_TRACK?.track?.('share_intent', {
       source: 'home_entry',
@@ -308,6 +319,13 @@
       }) || window.AI_SURVIVAL_LINE?.gameUrl?.() || 'https://liff.line.me/2010457475-01KQvYnQ';
       await copyText(url);
       toast(FALLBACK_TEXT);
+    } finally {
+      shareBusy = false;
+      document.querySelectorAll('[data-home-share-button]').forEach((button) => {
+        button.disabled = false;
+        button.style.opacity = '';
+        button.style.cursor = 'pointer';
+      });
     }
   };
 
