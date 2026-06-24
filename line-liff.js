@@ -330,7 +330,9 @@
   });
 
   async function share(messages) {
-    await ready;
+    if (!window.AI_SURVIVAL_LINE_STATUS?.ready) {
+      await ready;
+    }
     trackLineEvent("share_picker_attempt", {
       messageTypes: Array.isArray(messages) ? messages.map((message) => message?.type).filter(Boolean) : [],
     });
