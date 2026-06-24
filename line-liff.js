@@ -374,6 +374,16 @@
     return query ? `${base}${base.includes("?") ? "&" : "?"}${query}` : base;
   }
 
+  function textInviteMessage(url, options = {}) {
+    const title = options.title || copy.title;
+    const lead = options.lead || copy.inviteLead;
+    const text = options.text || copy.inviteText;
+    return {
+      type: "text",
+      text: `${lead}\n${title}\n${text}\n${url}`,
+    };
+  }
+
   async function permanentGameUrl(extra = {}) {
     const params = new URLSearchParams();
     const inviteCode = normalizeInviteCode(extra.inviteCode || (await createInviteCode({
@@ -388,15 +398,8 @@
     const query = params.toString();
     const webUrl = query ? `${endpointUrl}?${query}` : endpointUrl;
 
-    await ready;
-    if (window.liff?.permanentLink?.createUrlBy) {
-      try {
-        return window.liff.permanentLink.createUrlBy(webUrl);
-      } catch (error) {
-        console.warn("LIFF permanent link failed, fallback to LIFF URL", error);
-      }
-    }
-
+    // Prefer direct LIFF URLs for sharing. It avoids an extra permanent-link step
+    // before the target picker and keeps invite/ref query parameters intact.
     return config.liffId
       ? `https://liff.line.me/${config.liffId}${query ? `?${query}` : ""}`
       : webUrl;
@@ -495,18 +498,31 @@
     shareInFlightAt = now;
 
     try {
-      const url =
-        options.url ||
-        preparedGameUrl ||
-        (await permanentGameUrl({
-          ...options,
-          source: options.source || "share_game",
-          metadata: options.metadata || {},
-        }));
+      const hadPreparedUrl = Boolean(options.url || preparedGameUrl);
+      const url = options.url || preparedGameUrl || gameUrl({ profileId: options.profileId });
       const title = options.title || copy.title;
       const text = options.text || copy.inviteText;
 
       const lead = options.lead || copy.inviteLead;
+      if (!hadPreparedUrl) {
+        trackLineEvent("share_url_fast_fallback", {
+          reason: "prepared_invite_url_not_ready",
+          url,
+        });
+        prepareGameShare({
+          ...options,
+          source: options.source || "share_game_rewarm_after_fast_fallback",
+          metadata: options.metadata || {},
+        }).catch((error) => {
+          console.warn("Share rewarm failed after fast fallback", error);
+        });
+      }
+
+      const textMessage = textInviteMessage(url, { title, text, lead });
+      if (options.preferFlex !== true) {
+        return await share([textMessage]);
+      }
+
       const flexMessage = buildInviteFlex(url, {
         title,
         text,
@@ -516,20 +532,15 @@
 
       try {
         const result = await share([flexMessage]);
-        if (!options.url && !preparedGameUrl) {
+        if (!hadPreparedUrl) {
           prepareGameShare({ source: "share_rewarm_after_success" }).catch(() => null);
         }
         return result;
       } catch (error) {
         window.AI_SURVIVAL_LAST_SHARE_ERROR = String(error?.message || error);
         console.warn("Flex share failed, retrying with text share.", error);
-        const result = await share([
-          {
-            type: "text",
-            text: `${lead}\n${title}\n${text}\n${url}`,
-          },
-        ]);
-        if (!options.url && !preparedGameUrl) {
+        const result = await share([textMessage]);
+        if (!hadPreparedUrl) {
           prepareGameShare({ source: "share_rewarm_after_text_success" }).catch(() => null);
         }
         return result;
@@ -547,6 +558,7 @@
     gameUrl,
     permanentGameUrl,
     buildInviteFlex,
+    textInviteMessage,
     getDiagnostics: diagnostics,
     getStatus: () => window.AI_SURVIVAL_LINE_STATUS,
   };
