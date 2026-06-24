@@ -307,11 +307,11 @@
 
     try {
       if (!window.AI_SURVIVAL_LINE?.shareGame) throw new Error('LINE share is not initialized');
-      await window.AI_SURVIVAL_LINE.shareGame({
+      const result = await window.AI_SURVIVAL_LINE.shareGame({
         lead: '分享給你的一個測驗',
         text: '我想知道你在超智能時代的位置。測完也能看到好友類型分佈。'
       });
-      toast('已開啟 LINE 好友列表');
+      if (!result?.fallback) toast('已開啟 LINE 好友列表');
     } catch (error) {
       const url = await window.AI_SURVIVAL_LINE?.permanentGameUrl?.({
         source: 'home_copy_fallback',

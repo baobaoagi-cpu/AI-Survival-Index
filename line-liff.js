@@ -30,6 +30,7 @@
   let preparedGameUrlPromise = null;
   let shareInFlight = false;
   let shareInFlightAt = 0;
+  let fallbackPanelRetry = null;
 
   function publicOrigin() {
     if (window.location.protocol === "https:") return window.location.origin;
@@ -296,6 +297,136 @@
     });
   }
 
+  async function copyText(text) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "true");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const ok = document.execCommand("copy");
+    textarea.remove();
+    return ok;
+  }
+
+  function ensureFallbackPanelStyles() {
+    if (document.querySelector("[data-ai-share-fallback-style]")) return;
+    const style = document.createElement("style");
+    style.setAttribute("data-ai-share-fallback-style", "true");
+    style.textContent = `
+      .ai-share-fallback-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:18px;background:rgba(5,4,10,.72);backdrop-filter:blur(12px)}
+      .ai-share-fallback-panel{width:min(100%,390px);border:1px solid rgba(255,255,255,.16);border-radius:26px;background:linear-gradient(180deg,rgba(25,20,44,.98),rgba(7,6,15,.98));box-shadow:0 24px 80px rgba(0,0,0,.55);padding:22px;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans TC","Microsoft JhengHei",sans-serif}
+      .ai-share-fallback-kicker{font-size:12px;letter-spacing:.18em;color:#8df8d5;font-weight:800;text-transform:uppercase}
+      .ai-share-fallback-title{margin:9px 0 8px;font-size:22px;line-height:1.25;font-weight:900}
+      .ai-share-fallback-copy{font-size:14px;line-height:1.65;color:rgba(255,255,255,.72)}
+      .ai-share-fallback-url{margin:14px 0;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;line-height:1.45;color:rgba(255,255,255,.82);word-break:break-all}
+      .ai-share-fallback-qr{display:flex;align-items:center;gap:13px;margin:12px 0 16px}
+      .ai-share-fallback-qr img{width:86px;height:86px;border-radius:14px;background:#fff;padding:6px}
+      .ai-share-fallback-qr span{font-size:13px;line-height:1.55;color:rgba(255,255,255,.64)}
+      .ai-share-fallback-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .ai-share-fallback-actions button{min-height:48px;border:0;border-radius:999px;font-size:15px;font-weight:900;color:#fff;background:rgba(255,255,255,.12)}
+      .ai-share-fallback-actions button[data-primary]{grid-column:1/-1;background:linear-gradient(90deg,#8b5cf6,#ec4fb3,#60a5fa);box-shadow:0 12px 30px rgba(139,92,246,.32)}
+      .ai-share-fallback-actions button:active{transform:scale(.98)}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function showShareFallbackPanel(url, options = {}) {
+    ensureFallbackPanelStyles();
+    document.querySelector("[data-ai-share-fallback]")?.remove();
+    const panel = document.createElement("div");
+    const title = options.title || copy.title;
+    const lead = options.lead || copy.inviteLead;
+    const text = options.text || copy.inviteText;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}`;
+    panel.className = "ai-share-fallback-backdrop";
+    panel.setAttribute("data-ai-share-fallback", "true");
+    panel.innerHTML = `
+      <div class="ai-share-fallback-panel" role="dialog" aria-modal="true" aria-label="分享備用方案">
+        <div class="ai-share-fallback-kicker">Share fallback</div>
+        <div class="ai-share-fallback-title">LINE 好友清單沒有打開</div>
+        <div class="ai-share-fallback-copy">已幫你複製分享連結。你可以直接貼到 LINE 聊天室，也可以再試一次開啟好友清單。</div>
+        <div class="ai-share-fallback-url">${escapeHtml(url)}</div>
+        <div class="ai-share-fallback-qr">
+          <img src="${qrUrl}" referrerpolicy="no-referrer" alt="分享 QR code">
+          <span>朋友掃這個 QR code，也會進到同一個測驗入口。</span>
+        </div>
+        <div class="ai-share-fallback-actions">
+          <button type="button" data-primary data-action="retry">再試一次好友清單</button>
+          <button type="button" data-action="copy">複製連結</button>
+          <button type="button" data-action="system">系統分享</button>
+          <button type="button" data-action="close">關閉</button>
+        </div>
+      </div>
+    `;
+    panel.addEventListener("click", async (event) => {
+      if (event.target === panel) {
+        panel.remove();
+        return;
+      }
+      const button = event.target.closest?.("button[data-action]");
+      if (!button) return;
+      const action = button.getAttribute("data-action");
+      if (action === "close") {
+        trackLineEvent("share_fallback_panel_closed");
+        panel.remove();
+        return;
+      }
+      if (action === "copy") {
+        await copyText(url).catch(() => false);
+        trackLineEvent("share_fallback_copy_clicked", { url });
+        button.textContent = "已複製";
+        return;
+      }
+      if (action === "system") {
+        trackLineEvent("share_fallback_system_clicked", { url });
+        if (navigator.share) {
+          await navigator.share({ title, text: `${lead}\n${text}`, url }).catch((error) => {
+            trackLineEvent("share_fallback_system_failed", {
+              errorName: error?.name || null,
+              errorMessage: String(error?.message || error),
+            });
+          });
+        } else {
+          await copyText(url).catch(() => false);
+          button.textContent = "已複製";
+        }
+        return;
+      }
+      if (action === "retry") {
+        trackLineEvent("share_fallback_retry_clicked", { url });
+        button.disabled = true;
+        button.textContent = "開啟中...";
+        try {
+          if (fallbackPanelRetry) await fallbackPanelRetry();
+          panel.remove();
+        } catch (error) {
+          button.disabled = false;
+          button.textContent = "再試一次好友清單";
+          trackLineEvent("share_fallback_retry_failed", {
+            errorName: error?.name || null,
+            errorMessage: String(error?.message || error),
+          });
+        }
+      }
+    });
+    document.body.appendChild(panel);
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function prepareGameShare(options = {}) {
     if (preparedGameUrl) return Promise.resolve(preparedGameUrl);
     if (!preparedGameUrlPromise) {
@@ -360,6 +491,38 @@
       });
       throw error;
     }
+  }
+
+  async function shareFallback(error, initialUrl, options = {}, copyOptions = {}) {
+    window.AI_SURVIVAL_LAST_SHARE_ERROR = String(error?.message || error);
+    let fallbackUrl = initialUrl;
+    try {
+      fallbackUrl = await permanentGameUrl({
+        ...options,
+        source: `${options.source || "share_game"}_fallback_url`,
+        metadata: {
+          ...(options.metadata || {}),
+          fallbackReason: String(error?.message || error),
+        },
+      });
+    } catch (urlError) {
+      trackLineEvent("share_fallback_url_failed", {
+        errorName: urlError?.name || null,
+        errorMessage: String(urlError?.message || urlError),
+      });
+    }
+    const copied = await copyText(fallbackUrl).catch(() => false);
+    trackLineEvent("share_copy_fallback", {
+      copied,
+      url: fallbackUrl,
+      errorName: error?.name || null,
+      errorCode: error?.code || null,
+      errorMessage: String(error?.message || error),
+    });
+    const retryMessage = textInviteMessage(fallbackUrl, copyOptions);
+    fallbackPanelRetry = () => share([retryMessage]);
+    showShareFallbackPanel(fallbackUrl, copyOptions);
+    return { fallback: true, copied, url: fallbackUrl, reason: String(error?.message || error) };
   }
 
   function gameUrl(extra = {}) {
@@ -522,7 +685,11 @@
 
       const textMessage = textInviteMessage(url, { title, text, lead });
       if (options.preferFlex !== true) {
-        return await share([textMessage]);
+        try {
+          return await share([textMessage]);
+        } catch (error) {
+          return await shareFallback(error, url, options, { title, text, lead });
+        }
       }
 
       const flexMessage = buildInviteFlex(url, {
@@ -541,11 +708,15 @@
       } catch (error) {
         window.AI_SURVIVAL_LAST_SHARE_ERROR = String(error?.message || error);
         console.warn("Flex share failed, retrying with text share.", error);
-        const result = await share([textMessage]);
-        if (!hadPreparedUrl) {
-          prepareGameShare({ source: "share_rewarm_after_text_success" }).catch(() => null);
+        try {
+          const result = await share([textMessage]);
+          if (!hadPreparedUrl) {
+            prepareGameShare({ source: "share_rewarm_after_text_success" }).catch(() => null);
+          }
+          return result;
+        } catch (textError) {
+          return await shareFallback(textError, url, options, { title, text, lead });
         }
-        return result;
       }
     } finally {
       shareInFlight = false;
@@ -561,6 +732,7 @@
     permanentGameUrl,
     buildInviteFlex,
     textInviteMessage,
+    showShareFallbackPanel,
     getDiagnostics: diagnostics,
     getStatus: () => window.AI_SURVIVAL_LINE_STATUS,
   };
